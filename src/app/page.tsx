@@ -1,47 +1,43 @@
+'use client';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic'
+import StoryList from './components/StoryList';
+import { useStoryMapLogic, berlinCoordinates, defaultZoom } from '../hooks/useStoryMapLogic';
+
 
 const Map = dynamic(() => import('./components/Map'), { ssr: false })
 
-interface StoryMap {
-  id: string;
-  title: string;
-  author: string;
-  description: string;
-  address: string;
-  lat: number;
-  lng: number;
-  startDate: string | null;
-  midDate: string | null;
-  endDate: string | null;
-  category: string;
-  media: any[];
-}
+export default function Home() {
+  const {
+    storyMaps,
+    visibleStories,
+    activeStoryId,
+    currentDate,
+    minDate,
+    maxDate,
+    setCurrentDate,
+    handleMarkerClick,
+    testMarkers
+  } = useStoryMapLogic();
 
-async function getStoryMaps() {
-  try {
-    console.log('Fetching StoryMaps...');
-    const res = await fetch('http://localhost:3001/api/storymaps', { cache: 'no-store' });
-    if (!res.ok) {
-      throw new Error(`Failed to fetch story maps: ${res.status} ${res.statusText}`);
-    }
-    const data = await res.json();
-    console.log('Fetched StoryMaps:', data);
-    return data as StoryMap[];
-  } catch (error) {
-    console.error('Error fetching StoryMaps:', error);
-    return [];
-  }
-}
-
-export default async function Home() {
-  const storyMaps = await getStoryMaps();
-  console.log('StoryMaps in Home component:', storyMaps);
 
   return (
     <main className="p-4">
+    <div className="flex flex-col md:flex-row h-screen">
       <h1 className="text-3xl font-bold mb-4">StoryMap Cluster</h1>
-      <div className="h-[600px]">
+      <div className="w-full md:w-1/3 h-1/2 md:h-screen order-2 md:order-1">
+        <StoryList
+          visibleStories={visibleStories}
+          activeStoryId={activeStoryId}
+          minDate={minDate}
+          maxDate={maxDate}
+          currentDate={currentDate}
+          setCurrentDate={setCurrentDate}
+        />
+      </div>
+      <div className="w-full md:w-2/3 h-1/2 md:h-screen order-1 md:order-2">
         <Map storyMaps={storyMaps} />
+      </div>
       </div>
     </main>
   )
