@@ -5,6 +5,7 @@ import L from 'leaflet'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import { useMapFocus } from '../../hooks/useMapFocus'
+import { useMarkerStates } from '../hooks/useMarkerStates'
 import 'leaflet/dist/leaflet.css'
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -14,19 +15,13 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png',
 });
 
-type MarkerData = {
-  id: string;
-  position: [number, number];
-  popup: string;
+
+interface MapProps {
+  // ... other props
+  stories: StoryMap[];
+  currentDate: Date;
 }
 
-type MapProps = {
-  markers?: MarkerData[];
-  center: [number, number];
-  zoom: number;
-  onMarkerClick: (id: string) => void;
-  activeMarkerId: string | null;
-}
 
 function MapContent({ markers, onMarkerClick, activeMarkerId }: Omit<MapProps, 'center' | 'zoom'>) {
   useMapFocus(activeMarkerId, markers || []);

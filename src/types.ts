@@ -20,3 +20,4 @@ export interface MarkerData {
   position: [number, number];
   popup: string;
 }
+
