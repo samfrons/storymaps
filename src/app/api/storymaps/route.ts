@@ -10,7 +10,10 @@ async function getStoryMaps() {
     return JSON.parse(data);
   } catch (error) {
     console.error('Error reading storymaps.json:', error);
-    return [];
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      console.error('File not found. Please ensure storymaps.json exists in the data directory.');
+    }
+    throw error; // Re-throw the error to be caught in the GET function
   }
 }
 
@@ -18,10 +21,13 @@ export async function GET(request: NextRequest) {
   try {
     console.log('GET request received for /api/storymaps');
     const storyMaps = await getStoryMaps();
-    console.log('StoryMaps data:', storyMaps);
+    console.log(`Successfully retrieved ${storyMaps.length} StoryMaps`);
     return NextResponse.json(storyMaps);
   } catch (error) {
     console.error('Error in GET /api/storymaps:', error);
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      return NextResponse.json({ error: 'Data file not found' }, { status: 404 });
+    }
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

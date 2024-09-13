@@ -13,39 +13,57 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png',
 });
 
-type MarkerData = {
+type StoryMapData = {
   id: string;
-  position: [number, number];
-  popup: string;
+  title: string;
+  author: string;
+  description: string;
+  address: string;
+  lat: number;
+  lng: number;
+  startDate: string | null;
+  midDate: string | null;
+  endDate: string | null;
+  category: string;
+  media: any[];
 }
 
 type MapProps = {
-  markers: MarkerData[];
+  storyMaps: StoryMapData[];
 }
 
-const Map: React.FC<MapProps> = ({ markers }) => {
+const Map: React.FC<MapProps> = ({ storyMaps }) => {
   useEffect(() => {
-    console.log('Markers in Map component:', markers);
-  }, [markers]);
+    console.log('StoryMaps in Map component:', storyMaps);
+  }, [storyMaps]);
 
-  // Calculate the center of the map based on markers
-  const center = markers.length > 0
+  // Calculate the center of the map based on storyMaps
+  const center = storyMaps.length > 0
     ? [
-        markers.reduce((sum, marker) => sum + marker.position[0], 0) / markers.length,
-        markers.reduce((sum, marker) => sum + marker.position[1], 0) / markers.length,
+        storyMaps.reduce((sum, storyMap) => sum + storyMap.lat, 0) / storyMaps.length,
+        storyMaps.reduce((sum, storyMap) => sum + storyMap.lng, 0) / storyMaps.length,
       ] as [number, number]
-    : [40.7128, -74.0060] as [number, number]; // Default to New York City coordinates
+    : [52.52, 13.405] as [number, number]; // Default to Berlin coordinates
 
   return (
-    <MapContainer center={center} zoom={10} style={{ height: '100%', width: '100%' }}>
+    <MapContainer center={center} zoom={12} style={{ height: '100%', width: '100%' }}>
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       <MarkerClusterGroup>
-        {markers.map((marker) => (
-          <Marker key={marker.id} position={marker.position}>
-            <Popup>{marker.popup}</Popup>
+        {storyMaps.map((storyMap) => (
+          <Marker key={storyMap.id} position={[storyMap.lat, storyMap.lng]}>
+            <Popup>
+              <div>
+                <h3>{storyMap.title}</h3>
+                <p>{storyMap.description}</p>
+                <p>Address: {storyMap.address}</p>
+                {storyMap.startDate && <p>Start Date: {storyMap.startDate}</p>}
+                {storyMap.endDate && <p>End Date: {storyMap.endDate}</p>}
+                {storyMap.category && <p>Category: {storyMap.category}</p>}
+              </div>
+            </Popup>
           </Marker>
         ))}
       </MarkerClusterGroup>
