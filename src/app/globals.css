@@ -25,3 +25,13 @@ body {
     text-wrap: balance;
   }
 }
+
+
+.detail {
+  height: 400px;
+  width: 400px;
+  background: red;
+  z-index: 1000;
+  position: absolute;
+  display: block;
+}
