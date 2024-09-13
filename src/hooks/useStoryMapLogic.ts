@@ -58,7 +58,8 @@ export const useStoryMapLogic = () => {
     maxDate,
     setCurrentDate,
     handleMarkerClick,
-    testMarkers
+    testMarkers,
+    setActiveStoryId,
   };
 };
 

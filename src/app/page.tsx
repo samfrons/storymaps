@@ -16,8 +16,14 @@ export default function Home() {
     maxDate,
     setCurrentDate,
     handleMarkerClick,
-    testMarkers
+    testMarkers,
+    setActiveStoryId
   } = useStoryMapLogic();
+
+  const handleStoryClick = (storyId: string) => {
+    setActiveStoryId(storyId);
+    handleMarkerClick(storyId);
+  };
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
@@ -29,6 +35,7 @@ export default function Home() {
           maxDate={maxDate}
           currentDate={currentDate}
           setCurrentDate={setCurrentDate}
+          onStoryClick={handleStoryClick}
         />
       </div>
       <div className="w-full md:w-2/3 h-1/2 md:h-screen order-1 md:order-2">
@@ -36,7 +43,8 @@ export default function Home() {
           center={berlinCoordinates}
           zoom={defaultZoom}
           markers={testMarkers}
-          onMarkerClick={handleMarkerClick}
+          onMarkerClick={handleStoryClick}
+          activeMarkerId={activeStoryId}
         />
       </div>
     </div>

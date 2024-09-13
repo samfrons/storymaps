@@ -9,3 +9,10 @@ export interface StoryMap {
   endDate: string;
   mediaLink: string;
 }
+
+
+export interface MarkerData {
+  id: string;
+  position: [number, number];
+  popup: string;
+}
