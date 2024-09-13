@@ -2,6 +2,7 @@
 
 'use client';
 
+import Image from 'next/image';
 import React, { useState } from 'react';
 import TimeSlider from './TimeSlider';
 import { StoryMap } from '../types';
@@ -53,6 +54,17 @@ const StoryList: React.FC<StoryListProps> = ({
         >
           <div onClick={() => handleStoryClick(story.id)} className="cursor-pointer">
             <h3 className="text-xl font-semibold mb-2">{story.title}</h3>
+             {story.imageUrls && story.imageUrls.length > 0 && (
+              <div className="relative w-full h-48 mb-2">
+                <Image
+                  src={story.imageUrls[0]}
+                  alt={story.title}
+                  layout="fill"
+                  objectFit="cover"
+                  className="rounded"
+                />
+              </div>
+            )}
             <p className="mb-2">{story.description}</p>
             {story.mediaLink && <img src={story.mediaLink} alt={story.title} className="w-full h-auto mb-2" />}
             <p>Start: {new Date(story.startDate).getFullYear()}</p>

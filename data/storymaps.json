@@ -11,7 +11,7 @@
     "midDate": null,
     "endDate": null,
     "category": "",
-    "media": []
+    "imageUrls": []
   },
   {
     "id": "2",
@@ -25,8 +25,13 @@
     "midDate": null,
     "endDate": "1940-01-01",
     "category": "",
-    "media": []
+     "imageUrls": [
+      "/images/ebraun/ebraun1.png","/images/ebraun/ebraun2.png"
+
+    ]
   },
+
+
   {
     "id": "3",
     "title": "A. Breslaur",

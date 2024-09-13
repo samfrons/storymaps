@@ -1,14 +1,18 @@
 export interface StoryMap {
   id: string;
   title: string;
-  description: string;
-  longDescription: string;
+  description: string | null;
+  longDescription: string | null;
   lat: number;
   lng: number;
-  startDate: string;
-  endDate: string;
-  mediaLink: string;
+  startDate: string | null;
+  midDate: string | null;
+  endDate: string | null;
+  media: MediaItem[] | null;
+  imageUrls: string[]; 
 }
+
+
 
 
 export interface MarkerData {
