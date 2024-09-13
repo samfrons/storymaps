@@ -1,0 +1,43 @@
+[
+  {
+    "title": "title",
+    "author": "a",
+    "description": "a",
+    "chapters": [
+      {
+        "title": "a",
+        "description": "New chapter",
+        "location": {
+          "address": "7 Cobber Ln, Wainscott, NY 11975, USA",
+          "lat": 40.9700458,
+          "lng": -72.2539084
+        },
+        "media": {
+          "type": "image",
+          "url": "https://example.com/placeholder.jpg"
+        }
+      }
+    ],
+    "id": "1725826380608"
+  },
+  {
+    "title": "as",
+    "author": "s",
+    "description": "s",
+    "chapters": [
+      {
+        "title": "s",
+        "description": "New chapter",
+        "location": {
+          "lat": 40.9537509,
+          "lng": -72.2095331,
+          "address": "71 Montauk Hwy, East Hampton, NY 11937, USA"
+        },
+        "startDate": "2024-09-08T04:00:00.000Z",
+        "endDate": "2024-09-16T04:00:00.000Z",
+        "media": []
+      }
+    ],
+    "id": "1725830062427"
+  }
+]
