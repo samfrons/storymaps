@@ -23,28 +23,33 @@ interface MapProps {
   zoom: number;
   onMarkerClick: (id: string) => void;
   activeMarkerId: string | null;
-  currentDate: Date;
+  currentYear: number;
 }
 
-function MapContent({ stories, onMarkerClick, activeMarkerId, currentDate }: Omit<MapProps, 'center' | 'zoom'>) {
-  const markerStates = useMarkerStates(stories, currentDate);
-
-   const markers: MarkerData[] = stories.map(story => ({
+function MapContent({ stories, onMarkerClick, activeMarkerId, currentYear }: Omit<MapProps, 'center' | 'zoom'>) {
+  const markerStates = useMarkerStates(stories, currentYear);
+  
+  const markers: MarkerData[] = stories.map(story => ({
     id: story.id,
     position: [story.lat, story.lng] as [number, number],
     popup: story.title
   }));
 
-    useMapFocus(activeMarkerId, markers);
+  useMapFocus(activeMarkerId, markers);
 
-  const getMarkerIcon = (state: string) => {
+  const getMarkerIcon = (state: string, isActive: boolean) => {
+    let className = `custom-marker ${state}`;
+    if (isActive) {
+      className += ' active';
+    }
     return L.divIcon({
-      className: `custom-marker ${state}`,
+      className: className,
       html: `<div></div>`,
       iconSize: [30, 30],
       iconAnchor: [15, 30],
     });
   };
+
 
   return (
     <>
@@ -52,35 +57,34 @@ function MapContent({ stories, onMarkerClick, activeMarkerId, currentDate }: Omi
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      <MarkerClusterGroup>
-        {markers.map((marker) => {
-          const markerState = markerStates.find(m => m.id === marker.id)?.state || 'active';
-          return (
-            <Marker 
-              key={marker.id} 
-              position={marker.position}
-              icon={getMarkerIcon(markerState)}
-              eventHandlers={{
-                click: () => onMarkerClick(marker.id),
-              }}
-            >
-              <Popup>{marker.popup}</Popup>
-            </Marker>
-          );
-        })}
-      </MarkerClusterGroup>
+      {markers.map((marker) => {
+        const markerState = markerStates.find(m => m.id === marker.id)?.state || 'normal';
+        const isActive = marker.id === activeMarkerId;
+        return (
+          <Marker 
+            key={marker.id} 
+            position={marker.position}
+            icon={getMarkerIcon(markerState, isActive)}
+            eventHandlers={{
+              click: () => onMarkerClick(marker.id),
+            }}
+          >
+            <Popup>{marker.popup}</Popup>
+          </Marker>
+        );
+      })}
     </>
   );
 }
 
-const Map: React.FC<MapProps> = ({ stories, center, zoom, onMarkerClick, activeMarkerId, currentDate }) => {
+const Map: React.FC<MapProps> = ({ stories, center, zoom, onMarkerClick, activeMarkerId, currentYear }) => {
   return (
     <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
       <MapContent 
         stories={stories} 
         onMarkerClick={onMarkerClick} 
         activeMarkerId={activeMarkerId} 
-        currentDate={currentDate}
+        currentYear={currentYear}
       />
     </MapContainer>
   )

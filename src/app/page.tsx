@@ -43,38 +43,53 @@ export default function Home() {
       } catch (error) {
         console.error('Error fetching stories:', error);
       }
+
+
     };
 
     fetchStories();
   }, []);
 
+/* filter removal
   useEffect(() => {
-    // Filter visible stories based on current date
+   
     const filteredStories = stories.filter(story => 
       (!story.startDate || new Date(story.startDate) <= currentDate) &&
       (!story.endDate || new Date(story.endDate) >= currentDate)
     );
     setVisibleStories(filteredStories);
-  }, [stories, currentDate]);
+  }, [stories, currentDate]); */
+
+
+   useEffect(() => {
+    setVisibleStories(stories);
+  }, [stories]);
 
   const handleStoryClick = (storyId: string) => {
     setActiveStoryId(storyId);
   };
 
+  const [activeMarkerId, setActiveMarkerId] = useState<string | null>(null);
+
+const handleMarkerClick = (id: string) => {
+  setActiveMarkerId(id);
+};
+
   return (
     <div className="flex flex-col md:flex-row h-screen">
       <div className="w-full md:w-1/3 h-1/2 md:h-screen order-2 md:order-1 overflow-auto">
-        <StoryList
-          visibleStories={visibleStories}
-          activeStoryId={activeStoryId}
-          onStoryClick={handleStoryClick}
-        />
-        <TimeSlider
+         <TimeSlider
           minDate={minDate}
           maxDate={maxDate}
           currentDate={currentDate}
           onChange={setCurrentDate}
         />
+        <StoryList
+          visibleStories={visibleStories}
+          activeStoryId={activeStoryId}
+          onStoryClick={handleStoryClick}
+        />
+      
       </div>
       <div className="w-full md:w-2/3 h-1/2 md:h-screen order-1 md:order-2">
         <Map
@@ -83,7 +98,7 @@ export default function Home() {
           zoom={defaultZoom}
           onMarkerClick={handleStoryClick}
           activeMarkerId={activeStoryId}
-          currentDate={currentDate}
+          currentYear={currentDate.getFullYear()}
         />
       </div>
     </div>

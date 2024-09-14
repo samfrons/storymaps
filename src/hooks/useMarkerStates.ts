@@ -1,24 +1,35 @@
 // hooks/useMarkerStates.ts
-import { useState, useMemo } from 'react';
+
+import { useMemo } from 'react';
 import { StoryMap } from '../types';
 
-export const useMarkerStates = (stories: StoryMap[], currentDate: Date) => {
+export const useMarkerStates = (stories: StoryMap[], currentYear: number) => {
   return useMemo(() => {
     return stories.map(story => {
-      const startDate = story.startDate ? new Date(story.startDate) : null;
-      const midDate = story.midDate ? new Date(story.midDate) : null;
-      const endDate = story.endDate ? new Date(story.endDate) : null;
+      const startYear = story.startDate ? new Date(story.startDate).getFullYear() : null;
+      const midYear = story.midDate ? new Date(story.midDate).getFullYear() : null;
+      const endYear = story.endDate ? new Date(story.endDate).getFullYear() : null;
 
-      let state = 'active';
-      if (endDate && currentDate >= endDate) {
-        state = 'closed';
-      } else if (midDate && currentDate >= midDate) {
-        state = 'overtaken';
-      } else if (startDate && currentDate < startDate) {
-        state = 'future';
+      let state = 'future';
+      
+      if (startYear && currentYear >= startYear) {
+        state = 'normal';
+        
+        if (midYear && currentYear >= midYear) {
+          state = 'overtaken';
+        }
+        
+        if (endYear && currentYear >= endYear) {
+          state = 'closed';
+        }
       }
 
-      return { id: story.id, state };
+
+      /* else if (startYear && currentYear < startYear) {
+        state = 'future';
+      } */
+
+       return { id: story.id, state };
     });
-  }, [stories, currentDate]);
+  }, [stories, currentYear]);
 };

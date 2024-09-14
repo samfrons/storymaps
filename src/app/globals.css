@@ -36,18 +36,22 @@ body {
   border: 2px solid #fff;
 }
 
-.custom-marker.active {
-  background-color: #4CAF50;
+.custom-marker.future {
+  background-color: #808080; /* grey */
+}
+
+.custom-marker.normal {
+  background-color: #808080; /* grey */
 }
 
 .custom-marker.overtaken {
-  background-color: #FFC107;
+  background-color: #FF0000; /* red */
 }
 
 .custom-marker.closed {
-  background-color: #F44336;
+  background-color: #000000; /* black */
 }
 
-.custom-marker.future {
-  background-color: #2196F3;
+.custom-marker.active {
+  background-color: #FFFF00; /* yellow */
 }

@@ -4,9 +4,9 @@
 
 import Image from 'next/image';
 import React, { useState } from 'react';
-import TimeSlider from './TimeSlider';
 import { StoryMap } from '../types';
 import StoryDetail from './StoryDetail';
+import TimeSlider from './TimeSlider';
 
 interface StoryListProps {
   visibleStories: StoryMap[];
@@ -40,12 +40,7 @@ const StoryList: React.FC<StoryListProps> = ({
   return (
     <div className="w-full h-full overflow-y-auto p-4">
       <h1 className="text-3xl font-bold mb-4">Berlin Historical Tour</h1>
-      <TimeSlider 
-        minDate={minDate}
-        maxDate={maxDate}
-        currentDate={currentDate}
-        onChange={setCurrentDate}
-      />
+      
       <h2 className="text-2xl font-bold mt-8 mb-4">Stories</h2>
       {visibleStories.map((story) => (
         <div 
