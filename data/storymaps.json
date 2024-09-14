@@ -21,13 +21,12 @@
     "address": "Unter den Linden 2, Berlin, Germany",
     "lat": 52.51772,
     "lng": 13.39703,
-    "startDate": "1900-01-01",
-    "midDate": null,
+    "startDate": "1920-01-01",
+    "midDate": "1935-01-01",
     "endDate": "1940-01-01",
     "category": "",
      "imageUrls": [
       "/images/ebraun/ebraun1.png","/images/ebraun/ebraun2.png"
-
     ]
   },
 

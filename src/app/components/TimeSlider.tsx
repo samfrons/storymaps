@@ -2,17 +2,20 @@
 
 'use client';
 
-import React, { useState } from 'react';
-
+import React from 'react';
 
 interface TimeSliderProps {
-  minDate: Date;
-  maxDate: Date;
+  minDate: Date | null;
+  maxDate: Date | null;
   currentDate: Date;
   onChange: (date: Date) => void;
 }
 
 const TimeSlider: React.FC<TimeSliderProps> = ({ minDate, maxDate, currentDate, onChange }) => {
+  if (!minDate || !maxDate) {
+    return <div>Loading...</div>; // Or any other placeholder you prefer
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = new Date(parseInt(e.target.value));
     onChange(newDate);

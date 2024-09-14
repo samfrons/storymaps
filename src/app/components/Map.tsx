@@ -1,3 +1,4 @@
+// File: app/components/Map.tsx
 'use client'
 
 import { useEffect } from 'react'
@@ -5,7 +6,8 @@ import L from 'leaflet'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import { useMapFocus } from '../../hooks/useMapFocus'
-import { useMarkerStates } from '../hooks/useMarkerStates'
+import { useMarkerStates } from '../../hooks/useMarkerStates'
+import { StoryMap } from '../types'
 import 'leaflet/dist/leaflet.css'
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -15,16 +17,27 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png',
 });
 
-
 interface MapProps {
-  // ... other props
   stories: StoryMap[];
+  center: [number, number];
+  zoom: number;
+  onMarkerClick: (id: string) => void;
+  activeMarkerId: string | null;
   currentDate: Date;
 }
 
+function MapContent({ stories, onMarkerClick, activeMarkerId, currentDate }: Omit<MapProps, 'center' | 'zoom'>) {
+  const markerStates = useMarkerStates(stories, currentDate);
+  useMapFocus(activeMarkerId, stories);
 
-function MapContent({ markers, onMarkerClick, activeMarkerId }: Omit<MapProps, 'center' | 'zoom'>) {
-  useMapFocus(activeMarkerId, markers || []);
+  const getMarkerIcon = (state: string) => {
+    return L.divIcon({
+      className: `custom-marker ${state}`,
+      html: `<div></div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+    });
+  };
 
   return (
     <>
@@ -33,30 +46,35 @@ function MapContent({ markers, onMarkerClick, activeMarkerId }: Omit<MapProps, '
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       <MarkerClusterGroup>
-        {markers && markers.length > 0 && markers.map((marker) => (
-          <Marker 
-            key={marker.id} 
-            position={marker.position}
-            eventHandlers={{
-              click: () => onMarkerClick(marker.id),
-            }}
-          >
-            <Popup>{marker.popup}</Popup>
-          </Marker>
-        ))}
+        {stories.map((story) => {
+          const markerState = markerStates.find(m => m.id === story.id)?.state || 'active';
+          return (
+            <Marker 
+              key={story.id} 
+              position={[story.lat, story.lng]}
+              icon={getMarkerIcon(markerState)}
+              eventHandlers={{
+                click: () => onMarkerClick(story.id),
+              }}
+            >
+              <Popup>{story.title}</Popup>
+            </Marker>
+          );
+        })}
       </MarkerClusterGroup>
     </>
   );
 }
 
-const Map: React.FC<MapProps> = ({ markers = [], center, zoom, onMarkerClick, activeMarkerId }) => {
-  useEffect(() => {
-    console.log('Markers in Map component:', markers);
-  }, [markers]);
-
+const Map: React.FC<MapProps> = ({ stories, center, zoom, onMarkerClick, activeMarkerId, currentDate }) => {
   return (
     <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
-      <MapContent markers={markers} onMarkerClick={onMarkerClick} activeMarkerId={activeMarkerId} />
+      <MapContent 
+        stories={stories} 
+        onMarkerClick={onMarkerClick} 
+        activeMarkerId={activeMarkerId} 
+        currentDate={currentDate}
+      />
     </MapContainer>
   )
 }

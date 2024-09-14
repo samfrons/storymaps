@@ -30,3 +30,24 @@ body {
 .detail {
 
 }
+
+.custom-marker {
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+.custom-marker.active {
+  background-color: #4CAF50;
+}
+
+.custom-marker.overtaken {
+  background-color: #FFC107;
+}
+
+.custom-marker.closed {
+  background-color: #F44336;
+}
+
+.custom-marker.future {
+  background-color: #2196F3;
+}
