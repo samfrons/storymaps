@@ -7,7 +7,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import { useMapFocus } from '../../hooks/useMapFocus'
 import { useMarkerStates } from '../../hooks/useMarkerStates'
-import { StoryMap } from '../types'
+import { StoryMap, MarkerData } from '../types'
 import 'leaflet/dist/leaflet.css'
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -28,7 +28,14 @@ interface MapProps {
 
 function MapContent({ stories, onMarkerClick, activeMarkerId, currentDate }: Omit<MapProps, 'center' | 'zoom'>) {
   const markerStates = useMarkerStates(stories, currentDate);
-  useMapFocus(activeMarkerId, stories);
+
+   const markers: MarkerData[] = stories.map(story => ({
+    id: story.id,
+    position: [story.lat, story.lng] as [number, number],
+    popup: story.title
+  }));
+
+    useMapFocus(activeMarkerId, markers);
 
   const getMarkerIcon = (state: string) => {
     return L.divIcon({
@@ -46,18 +53,18 @@ function MapContent({ stories, onMarkerClick, activeMarkerId, currentDate }: Omi
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       <MarkerClusterGroup>
-        {stories.map((story) => {
-          const markerState = markerStates.find(m => m.id === story.id)?.state || 'active';
+        {markers.map((marker) => {
+          const markerState = markerStates.find(m => m.id === marker.id)?.state || 'active';
           return (
             <Marker 
-              key={story.id} 
-              position={[story.lat, story.lng]}
+              key={marker.id} 
+              position={marker.position}
               icon={getMarkerIcon(markerState)}
               eventHandlers={{
-                click: () => onMarkerClick(story.id),
+                click: () => onMarkerClick(marker.id),
               }}
             >
-              <Popup>{story.title}</Popup>
+              <Popup>{marker.popup}</Popup>
             </Marker>
           );
         })}
