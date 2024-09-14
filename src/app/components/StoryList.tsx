@@ -40,7 +40,12 @@ const StoryList: React.FC<StoryListProps> = ({
   return (
     <div className="w-full h-full overflow-y-auto p-4">
       <h1 className="text-3xl font-bold mb-4">Berlin Historical Tour</h1>
-      
+      <TimeSlider 
+        minDate={minDate}
+        maxDate={maxDate}
+        currentDate={currentDate}
+        onChange={setCurrentDate}
+      />
       <h2 className="text-2xl font-bold mt-8 mb-4">Stories</h2>
       {visibleStories.map((story) => (
         <div 
@@ -62,8 +67,8 @@ const StoryList: React.FC<StoryListProps> = ({
             )}
             <p className="mb-2">{story.description}</p>
             {story.mediaLink && <img src={story.mediaLink} alt={story.title} className="w-full h-auto mb-2" />}
-            <p>Start: {new Date(story.startDate).getFullYear()}</p>
-            <p>End: {new Date(story.endDate).getFullYear()}</p>
+            <p>Start: {story.startDate ? new Date(story.startDate).getFullYear() : 'N/A'}</p>
+            <p>End: {story.endDate ? new Date(story.endDate).getFullYear() : 'N/A'}</p>
           </div>
           <button
             className="btn btn-secondary btn-sm mt-2"
