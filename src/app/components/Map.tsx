@@ -52,10 +52,9 @@ function MapContent({ stories, onMarkerClick, activeMarkerId, currentYear }: Omi
       const marker = markerRefs.current[activeMarkerId];
       if (marker) {
         marker.openPopup();
-        map.panTo(marker.getLatLng());
       }
     }
-  }, [activeMarkerId, map]);
+  }, [activeMarkerId]);
 
   return (
     <>
@@ -63,30 +62,36 @@ function MapContent({ stories, onMarkerClick, activeMarkerId, currentYear }: Omi
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-
-<MarkerClusterGroup>
-      {markers.map((marker) => {
-        const markerState = markerStates.find(m => m.id === marker.id)?.state || 'normal';
-        const isActive = marker.id === activeMarkerId;
-        return (
-          <Marker 
-            key={marker.id} 
-            position={marker.position}
-            icon={getMarkerIcon(markerState, isActive)}
-            eventHandlers={{
-              click: () => onMarkerClick(marker.id),
-            }}
-            ref={(ref) => {
-              if (ref) {
-                markerRefs.current[marker.id] = ref;
-              }
-            }}
-          >
-            <Popup>{marker.popup}</Popup>
-          </Marker>
-        );
-      })}
-
+      <MarkerClusterGroup
+        chunkedLoading
+        spiderifyOnMaxZoom={false}
+        removeOutsideVisibleBounds={false}
+        disableClusteringAtZoom={14}
+      >
+        {markers.map((marker) => {
+          const markerState = markerStates.find(m => m.id === marker.id)?.state || 'normal';
+          const isActive = marker.id === activeMarkerId;
+          return (
+            <Marker 
+              key={marker.id} 
+              position={marker.position}
+              icon={getMarkerIcon(markerState, isActive)}
+              eventHandlers={{
+                click: (e) => {
+                  L.DomEvent.stopPropagation(e);
+                  onMarkerClick(marker.id);
+                },
+              }}
+              ref={(ref) => {
+                if (ref) {
+                  markerRefs.current[marker.id] = ref;
+                }
+              }}
+            >
+              <Popup>{marker.popup}</Popup>
+            </Marker>
+          );
+        })}
       </MarkerClusterGroup>
     </>
   );

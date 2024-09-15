@@ -30,6 +30,7 @@ const StoryDetail: React.FC<StoryDetailProps> = ({ story }) => {
       <p className="mb-2"><strong>Category:</strong> {story.category || 'N/A'}</p>
       <p className="mb-2"><strong>Address:</strong> {story.address}</p>
       <p className="mb-2"><strong>Location:</strong> Lat: {story.lat}, Lng: {story.lng}</p>
+      <p className="mb-2">{story.longDescription}</p>
     </div>
   );
 };

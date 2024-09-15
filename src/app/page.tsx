@@ -67,13 +67,17 @@ export default function Home() {
 
   const handleStoryClick = (storyId: string) => {
     setActiveStoryId(storyId);
+    setActiveMarkerId(storyId);
+  };
+
+  const handleMarkerClick = (id: string) => {
+    setActiveMarkerId(id);
+    setActiveStoryId(id);
   };
 
   const [activeMarkerId, setActiveMarkerId] = useState<string | null>(null);
 
-const handleMarkerClick = (id: string) => {
-  setActiveMarkerId(id);
-};
+
 
   return (
     <div className="flex flex-col md:flex-row h-screen">

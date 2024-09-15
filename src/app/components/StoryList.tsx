@@ -4,9 +4,11 @@
 
 import Image from 'next/image';
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { StoryMap } from '../types';
 import StoryDetail from './StoryDetail';
 import TimeSlider from './TimeSlider';
+
 
 interface StoryListProps {
   visibleStories: StoryMap[];
@@ -40,12 +42,7 @@ const StoryList: React.FC<StoryListProps> = ({
   return (
     <div className="w-full h-full overflow-y-auto p-4">
       <h1 className="text-3xl font-bold mb-4">Berlin Historical Tour</h1>
-      <TimeSlider 
-        minDate={minDate}
-        maxDate={maxDate}
-        currentDate={currentDate}
-        onChange={setCurrentDate}
-      />
+      
       <h2 className="text-2xl font-bold mt-8 mb-4">Stories</h2>
       {visibleStories.map((story) => (
         <div 
@@ -53,7 +50,9 @@ const StoryList: React.FC<StoryListProps> = ({
           className={`mb-4 p-4 bg-base-200 rounded-lg ${story.id === activeStoryId ? 'border-2 border-primary' : ''}`}
         >
           <div onClick={() => handleStoryClick(story.id)} className="cursor-pointer">
+          <Link href={`/story/${story.id}`}>
             <h3 className="text-xl font-semibold mb-2">{story.title}</h3>
+            </Link>
              {story.imageUrls && story.imageUrls.length > 0 && (
               <div className="relative w-full h-48 mb-2">
                 <Image

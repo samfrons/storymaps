@@ -10,10 +10,10 @@ export const useMarkerStates = (stories: StoryMap[], currentYear: number) => {
       const midYear = story.midDate ? new Date(story.midDate).getFullYear() : null;
       const endYear = story.endDate ? new Date(story.endDate).getFullYear() : null;
 
-      let state = 'future';
+      let state = 'normal';
       
       if (startYear && currentYear >= startYear) {
-        state = 'normal';
+        state = 'active';
         
         if (midYear && currentYear >= midYear) {
           state = 'overtaken';
@@ -22,14 +22,14 @@ export const useMarkerStates = (stories: StoryMap[], currentYear: number) => {
         if (endYear && currentYear >= endYear) {
           state = 'closed';
         }
-      }
+      } 
 
 
       /* else if (startYear && currentYear < startYear) {
         state = 'future';
       } */
 
-       return { id: story.id, state };
+      return { id: story.id, state };
     });
   }, [stories, currentYear]);
 };
