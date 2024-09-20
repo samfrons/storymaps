@@ -5,6 +5,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StoryMap } from '../types';
 import StoryDetail from './StoryDetail';
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('scroll', (e) => {
+    console.log('Window scroll event', e.target);
+  }, true);
+}
+
 interface StoryListProps {
   visibleStories: StoryMap[];
   activeStoryId: string | null;
@@ -29,85 +35,86 @@ const StoryList: React.FC<StoryListProps> = ({
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null);
   const storyRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const listRef = useRef<HTMLDivElement>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const [isScrolling, setIsScrolling] = useState(false);
 
   const handleViewDetails = (storyId: string) => {
     setSelectedStoryId(prevId => prevId === storyId ? null : storyId);
   };
 
   useEffect(() => {
-    if (activeStoryId && storyRefs.current[activeStoryId] && !isScrolling) {
-      storyRefs.current[activeStoryId]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-    }
-  }, [activeStoryId, isScrolling]);
+    const handleScroll = (e: Event) => {
+      console.log('Scroll event fired on', e.target);
+      const scrollElement = e.target as Element;
+      const scrollPosition = scrollElement.scrollTop;
+      console.log('Scroll position:', scrollPosition);
 
-  useEffect(() => {
-    if (typeof IntersectionObserver === 'undefined') {
-      console.warn('IntersectionObserver not supported');
-      return;
-    }
+      const scrollIndicator = document.getElementById('scrollIndicator');
+      if (scrollIndicator) {
+        scrollIndicator.textContent = scrollPosition.toString();
+      }
 
-    const options = {
-      root: listRef.current,
-      rootMargin: '0px',
-      threshold: 0.5 // Consider an element visible when it's 50% in view
-    };
+      const windowHeight = scrollElement.clientHeight;
 
-    const callback: IntersectionObserverCallback = (entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && !isScrolling) {
-          onStoryActivate(entry.target.id);
+      let closestStory: { id: string; distance: number } | null = null;
+
+      for (const storyId in storyRefs.current) {
+        const element = storyRefs.current[storyId];
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          const elementTop = rect.top - scrollElement.getBoundingClientRect().top;
+          const elementCenter = elementTop + rect.height / 2;
+          const distanceFromCenter = Math.abs(windowHeight / 2 - elementCenter);
+
+          console.log(`Story ${storyId}:`, {
+            elementTop,
+            elementCenter,
+            distanceFromCenter
+          });
+
+          if (!closestStory || distanceFromCenter < closestStory.distance) {
+            closestStory = { id: storyId, distance: distanceFromCenter };
+          }
         }
-      });
+      }
+
+      if (closestStory) {
+        console.log('Closest story:', closestStory.id);
+        onStoryActivate(closestStory.id);
+      }
     };
 
-    observerRef.current = new IntersectionObserver(callback, options);
+    const possibleScrollElements = [
+      
+      document.querySelector('#story-list-container'),
+   
+    ];
 
-    Object.values(storyRefs.current).forEach(ref => {
-      if (ref) observerRef.current?.observe(ref);
+    possibleScrollElements.forEach(element => {
+      if (element) {
+        element.addEventListener('scroll', handleScroll, { passive: true });
+        console.log('Scroll listener added to', element);
+      }
     });
 
     return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
+      possibleScrollElements.forEach(element => {
+        if (element) {
+          element.removeEventListener('scroll', handleScroll);
+        }
+      });
     };
-  }, [onStoryActivate, visibleStories, isScrolling]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolling(true);
-      clearTimeout(window.scrollTimeout);
-      window.scrollTimeout = setTimeout(() => {
-        setIsScrolling(false);
-      }, 150);
-    };
-
-    const listElement = listRef.current;
-    if (listElement) {
-      listElement.addEventListener('scroll', handleScroll);
-    }
-
-    return () => {
-      if (listElement) {
-        listElement.removeEventListener('scroll', handleScroll);
-      }
-    };
-  }, []);
+  }, [onStoryActivate]);
 
   return (
     <div ref={listRef} id="story-list-container" className="story-list w-full h-full overflow-y-auto p-4">
+      <div className="fixed top-0 right-0 bg-black text-white p-2">
+        Scroll: <span id="scrollIndicator">0</span>
+      </div>
       <h1 className="text-3xl font-bold mb-4">Berlin Historical Tour</h1>
       
       <h2 className="text-2xl font-bold mt-8 mb-4">Stories</h2>
       {visibleStories.map((story) => (
         <div 
           key={story.id}
-          id={story.id}
           ref={el => storyRefs.current[story.id] = el}
           className={`story-item mb-4 p-4 bg-base-200 rounded-lg ${story.id === activeStoryId ? 'border-2 border-primary' : ''}`}
         >

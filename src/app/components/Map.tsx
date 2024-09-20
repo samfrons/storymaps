@@ -16,7 +16,6 @@ interface MapProps {
   currentDate: Date;
   mapStyle?: string;
   onViewFullStory: (storyId: string) => void;
-  onStoryActivate: (storyId: string) => void; // Add this line
 }
 
 function MapContent({ 
@@ -25,8 +24,7 @@ function MapContent({
   activeStoryId, 
   currentDate, 
   mapStyle,
-  onViewFullStory,
-  onStoryActivate // Add this line
+  onViewFullStory
 }: Omit<MapProps, 'center' | 'zoom'>) {
   const map = useMap();
   const markerRefs = useRef<{ [key: string]: L.Marker }>({});
@@ -44,7 +42,7 @@ function MapContent({
       if (activeStory) {
         const position: [number, number] = [Number(activeStory.lat), Number(activeStory.lng)];
         map.flyTo(position, 15, {
-          duration: 1.5,
+          duration: 1,
           easeLinearity: 0.25
         });
         const marker = markerRefs.current[activeStoryId];
@@ -54,38 +52,6 @@ function MapContent({
       }
     }
   }, [activeStoryId, stories, map]);
-
-  // Add a new effect to handle map movements
-  useEffect(() => {
-    const handleMoveEnd = () => {
-      const center = map.getCenter();
-      const closestMarker = findClosestMarker(center);
-      if (closestMarker) {
-        onStoryActivate(closestMarker.id);
-      }
-    };
-
-    map.on('moveend', handleMoveEnd);
-
-    return () => {
-      map.off('moveend', handleMoveEnd);
-    };
-  }, [map, onStoryActivate]);
-
-  const findClosestMarker = (center: L.LatLng) => {
-    let closestMarker = null;
-    let minDistance = Infinity;
-
-    markers.forEach(marker => {
-      const distance = center.distanceTo(L.latLng(marker.position));
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestMarker = marker;
-      }
-    });
-
-    return closestMarker;
-  };
 
   const getMarkerIcon = (state: string, isActive: boolean) => {
     let className = `custom-marker ${state}`;
@@ -115,8 +81,7 @@ function MapContent({
             position={marker.position}
             icon={getMarkerIcon(markerState, isActive)}
             eventHandlers={{
-              click: (e) => {
-                L.DomEvent.stopPropagation(e);
+              click: () => {
                 onMarkerClick(marker.id);
               },
             }}
