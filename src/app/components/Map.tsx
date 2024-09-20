@@ -1,16 +1,12 @@
-// File: app/components/Map.tsx
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
-import MarkerClusterGroup from 'react-leaflet-cluster'
-import { useMapFocus } from '../../hooks/useMapFocus'
+import { focusMap } from '../../hooks/useMapFocus'
 import { useMarkerStates } from '../../hooks/useMarkerStates'
 import { StoryMap, MarkerData } from '../types'
 import 'leaflet/dist/leaflet.css'
-
-// ... (keep the Leaflet icon setup)
 
 interface MapProps {
   stories: StoryMap[];
@@ -19,12 +15,13 @@ interface MapProps {
   onMarkerClick: (id: string) => void;
   activeMarkerId: string | null;
   currentYear: number;
+  mapStyle?: string;
 }
 
-function MapContent({ stories, onMarkerClick, activeMarkerId, currentYear }: Omit<MapProps, 'center' | 'zoom'>) {
-  const markerStates = useMarkerStates(stories, currentYear);
+function MapContent({ stories, onMarkerClick, activeMarkerId, currentYear, mapStyle }: Omit<MapProps, 'center' | 'zoom'>) {
   const map = useMap();
   const markerRefs = useRef<{ [key: string]: L.Marker }>({});
+  const [scrolledStoryId, setScrolledStoryId] = useState<string | null>(null);
   
   const markers: MarkerData[] = stories.map(story => ({
     id: story.id,
@@ -32,7 +29,32 @@ function MapContent({ stories, onMarkerClick, activeMarkerId, currentYear }: Omi
     popup: story.title
   }));
 
-  useMapFocus(activeMarkerId, markers);
+  const markerStates = useMarkerStates(stories, currentYear);
+
+  useEffect(() => {
+    focusMap(map, activeMarkerId, markers, scrolledStoryId);
+  }, [map, activeMarkerId, markers, scrolledStoryId]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const storyElements = document.querySelectorAll('.story-item');
+      const scrollPosition = window.scrollY;
+      const windowHeight = window.innerHeight;
+
+      for (let i = 0; i < storyElements.length; i++) {
+        const element = storyElements[i] as HTMLElement;
+        const rect = element.getBoundingClientRect();
+
+        if (rect.top >= 0 && rect.top <= windowHeight / 2) {
+          setScrolledStoryId(element.id);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const getMarkerIcon = (state: string, isActive: boolean) => {
     let className = `custom-marker ${state}`;
@@ -47,52 +69,36 @@ function MapContent({ stories, onMarkerClick, activeMarkerId, currentYear }: Omi
     });
   };
 
-  useEffect(() => {
-    if (activeMarkerId) {
-      const marker = markerRefs.current[activeMarkerId];
-      if (marker) {
-        marker.openPopup();
-      }
-    }
-  }, [activeMarkerId]);
-
   return (
     <>
       <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
+        attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
       />
-      <MarkerClusterGroup
-        chunkedLoading
-        spiderifyOnMaxZoom={false}
-        removeOutsideVisibleBounds={false}
-        disableClusteringAtZoom={14}
-      >
-        {markers.map((marker) => {
-          const markerState = markerStates.find(m => m.id === marker.id)?.state || 'normal';
-          const isActive = marker.id === activeMarkerId;
-          return (
-            <Marker 
-              key={marker.id} 
-              position={marker.position}
-              icon={getMarkerIcon(markerState, isActive)}
-              eventHandlers={{
-                click: (e) => {
-                  L.DomEvent.stopPropagation(e);
-                  onMarkerClick(marker.id);
-                },
-              }}
-              ref={(ref) => {
-                if (ref) {
-                  markerRefs.current[marker.id] = ref;
-                }
-              }}
-            >
-              <Popup>{marker.popup}</Popup>
-            </Marker>
-          );
-        })}
-      </MarkerClusterGroup>
+      {markers.map((marker) => {
+        const markerState = markerStates.find(m => m.id === marker.id)?.state || 'normal';
+        const isActive = marker.id === activeMarkerId;
+        return (
+          <Marker 
+            key={marker.id} 
+            position={marker.position}
+            icon={getMarkerIcon(markerState, isActive)}
+            eventHandlers={{
+              click: (e) => {
+                L.DomEvent.stopPropagation(e);
+                onMarkerClick(marker.id);
+              },
+            }}
+            ref={(ref) => {
+              if (ref) {
+                markerRefs.current[marker.id] = ref;
+              }
+            }}
+          >
+            <Popup>{marker.popup}</Popup>
+          </Marker>
+        );
+      })}
     </>
   );
 }

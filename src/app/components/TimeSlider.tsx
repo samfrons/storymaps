@@ -31,7 +31,7 @@ const TimeSlider: React.FC<TimeSliderProps> = ({ minDate, maxDate, currentDate, 
         onChange={handleChange}
         className="w-full"
       />
-      <div className="text-center mt-2">{currentDate.toDateString()}</div>
+      <div className="text-center mt-2">{currentDate.getFullYear()}</div>
     </div>
   );
 };

@@ -1,5 +1,4 @@
 // file: src/app/components/StoryList.tsx
-
 'use client';
 
 import Image from 'next/image';
@@ -8,7 +7,6 @@ import Link from 'next/link';
 import { StoryMap } from '../types';
 import StoryDetail from './StoryDetail';
 import TimeSlider from './TimeSlider';
-
 
 interface StoryListProps {
   visibleStories: StoryMap[];
@@ -47,13 +45,14 @@ const StoryList: React.FC<StoryListProps> = ({
       {visibleStories.map((story) => (
         <div 
           key={story.id}
-          className={`mb-4 p-4 bg-base-200 rounded-lg ${story.id === activeStoryId ? 'border-2 border-primary' : ''}`}
+          id={story.id}
+          className={`story-item mb-4 p-4 bg-base-200 rounded-lg ${story.id === activeStoryId ? 'border-2 border-primary' : ''}`}
         >
           <div onClick={() => handleStoryClick(story.id)} className="cursor-pointer">
-          <Link href={`/story/${story.id}`}>
-            <h3 className="text-xl font-semibold mb-2">{story.title}</h3>
+            <Link href={`/story/${story.id}`}>
+              <h3 className="text-xl font-semibold mb-2">{story.title}</h3>
             </Link>
-             {story.imageUrls && story.imageUrls.length > 0 && (
+            {story.imageUrls && story.imageUrls.length > 0 && (
               <div className="relative w-full h-48 mb-2">
                 <Image
                   src={story.imageUrls[0]}

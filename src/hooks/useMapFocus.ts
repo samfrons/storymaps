@@ -1,36 +1,27 @@
-// File: hooks/useMapFocus.ts
-
-import { useEffect, useRef } from 'react';
-import { useMap } from 'react-leaflet';
+import { Map as LeafletMap } from 'leaflet';
 import { MarkerData } from '../types';
 
-export const useMapFocus = (activeMarkerId: string | null, markers: MarkerData[]) => {
-  const map = useMap();
-  const prevZoom = useRef(map.getZoom());
+const DEFAULT_ZOOM = 15;
 
-  useEffect(() => {
-    if (activeMarkerId) {
-      const activeMarker = markers.find(marker => marker.id === activeMarkerId);
-      if (activeMarker) {
-        map.setView(activeMarker.position, prevZoom.current);
-        
-        const leafletMarkers = (map as any)._layers;
-        Object.values(leafletMarkers).forEach((layer: any) => {
-          if (layer.options && layer.options.id === activeMarkerId) {
-            layer.openPopup();
-          }
-        });
-      }
+export const focusMap = (
+  map: LeafletMap,
+  activeMarkerId: string | null, 
+  markers: MarkerData[], 
+  scrolledStoryId: string | null
+) => {
+  const focusOnMarker = (markerId: string) => {
+    const activeMarker = markers.find(marker => marker.id === markerId);
+    if (activeMarker) {
+      map.setView(activeMarker.position, DEFAULT_ZOOM, {
+        animate: true,
+        duration: 1
+      });
     }
-  }, [activeMarkerId, markers, map]);
+  };
 
-  useEffect(() => {
-    const updateZoom = () => {
-      prevZoom.current = map.getZoom();
-    };
-    map.on('zoomend', updateZoom);
-    return () => {
-      map.off('zoomend', updateZoom);
-    };
-  }, [map]);
+  if (activeMarkerId) {
+    focusOnMarker(activeMarkerId);
+  } else if (scrolledStoryId) {
+    focusOnMarker(scrolledStoryId);
+  }
 };

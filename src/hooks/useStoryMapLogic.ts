@@ -43,12 +43,6 @@ export const useStoryMapLogic = () => {
     setActiveStoryId(storyId);
   };
 
-  const testMarkers = visibleStories.map(story => ({
-    id: story.id,
-    position: [story.lat, story.lng] as [number, number],
-    popup: story.title
-  }));
-
   return {
     storyMaps,
     visibleStories,
@@ -58,7 +52,6 @@ export const useStoryMapLogic = () => {
     maxDate,
     setCurrentDate,
     handleMarkerClick,
-    testMarkers,
     setActiveStoryId,
   };
 };

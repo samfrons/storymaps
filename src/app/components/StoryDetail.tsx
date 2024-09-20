@@ -1,17 +1,38 @@
-// file: src/app/components/StoryDetail.tsx
+'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { StoryMap } from '../types';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 interface StoryDetailProps {
   story: StoryMap;
+  isStandalone?: boolean;
 }
 
-const StoryDetail: React.FC<StoryDetailProps> = ({ story }) => {
+const StoryDetail: React.FC<StoryDetailProps> = ({ story, isStandalone = false }) => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!story) {
+    return <div>No story details available.</div>;
+  }
+
+  const markerIcon = L.divIcon({
+    className: 'custom-marker',
+    html: `<div></div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 30],
+  });
+
   return (
     <div className="mt-4 p-4 bg-base-100 rounded-lg">
-      <h4 className="text-lg font-semibold mb-2">Additional Details</h4>
+      <h4 className="text-lg font-semibold mb-2">{isStandalone ? story.title : 'Additional Details'}</h4>
       {story.imageUrls && story.imageUrls.length > 0 && (
         <div className="mb-4">
           {story.imageUrls.map((url, index) => (
@@ -28,9 +49,25 @@ const StoryDetail: React.FC<StoryDetailProps> = ({ story }) => {
         </div>
       )}
       <p className="mb-2"><strong>Category:</strong> {story.category || 'N/A'}</p>
-      <p className="mb-2"><strong>Address:</strong> {story.address}</p>
-      <p className="mb-2"><strong>Location:</strong> Lat: {story.lat}, Lng: {story.lng}</p>
-      <p className="mb-2">{story.longDescription}</p>
+      <p className="mb-2"><strong>Address:</strong> {story.address || 'N/A'}</p>
+      <p className="mb-2"><strong>Location:</strong> Lat: {story.lat.toFixed(6)}, Lng: {story.lng.toFixed(6)}</p>
+      <p className="mb-2"><strong>Start Date:</strong> {new Date(story.startDate).toLocaleDateString()}</p>
+      <p className="mb-2"><strong>End Date:</strong> {new Date(story.endDate).toLocaleDateString()}</p>
+      {story.longDescription && <p className="mb-2">{story.longDescription}</p>}
+      
+      {isStandalone && isMounted && (
+        <div style={{ height: '400px', width: '100%' }}>
+          <MapContainer center={[story.lat, story.lng]} zoom={15} style={{ height: '100%', width: '100%' }}>
+            <TileLayer
+              url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
+            />
+            <Marker position={[story.lat, story.lng]} icon={markerIcon}>
+              <Popup>{story.title}</Popup>
+            </Marker>
+          </MapContainer>
+        </div>
+      )}
     </div>
   );
 };

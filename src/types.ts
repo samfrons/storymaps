@@ -10,14 +10,14 @@ export interface StoryMap {
   endDate: string | null;
   media: MediaItem[] | null;
   imageUrls: string[]; 
+  zoom?: number;
 }
-
-
 
 
 export interface MarkerData {
   id: string;
   position: [number, number];
   popup: string;
+  zoom?: number;
 }
 
