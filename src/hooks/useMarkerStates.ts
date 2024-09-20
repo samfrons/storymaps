@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { StoryMap } from '../types';
 
-export const useMarkerStates = (stories: StoryMap[], currentDate: Date) => {
+export const useMarkerStates = (stories: StoryMap[], currentDate: Date, focusedStoryId: string | null) => {
   return useMemo(() => {
     return stories.map(story => {
       const startDate = new Date(story.startDate);
@@ -22,7 +22,12 @@ export const useMarkerStates = (stories: StoryMap[], currentDate: Date) => {
         }
       }
 
+      // Set the state to 'active' if this story is focused
+      if (story.id === focusedStoryId) {
+        state = 'active';
+      }
+
       return { id: story.id, state };
     });
-  }, [stories, currentDate]);
+  }, [stories, currentDate, focusedStoryId]);
 };

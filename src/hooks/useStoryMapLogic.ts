@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { StoryMap } from '../types';
 
 export const useStoryMapLogic = () => {
   const [storyMaps, setStoryMaps] = useState<StoryMap[]>([]);
   const [visibleStories, setVisibleStories] = useState<StoryMap[]>([]);
   const [activeStoryId, setActiveStoryId] = useState<string | null>(null);
+  const [focusedStoryId, setFocusedStoryId] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState<Date>(new Date('1930-01-01'));
   const [minDate, setMinDate] = useState<Date>(new Date('1930-01-01'));
   const [maxDate, setMaxDate] = useState<Date>(new Date('1945-12-31'));
@@ -39,22 +40,29 @@ export const useStoryMapLogic = () => {
     setVisibleStories(filteredStories);
   }, [storyMaps, currentDate]);
 
-  const handleMarkerClick = (storyId: string) => {
+  const handleMarkerClick = useCallback((storyId: string) => {
     setActiveStoryId(storyId);
-  };
+    setFocusedStoryId(storyId);
+  }, []);
+
+  const handleStoryFocus = useCallback((storyId: string) => {
+    setFocusedStoryId(storyId);
+  }, []);
 
   return {
     storyMaps,
     visibleStories,
     activeStoryId,
+    focusedStoryId,
     currentDate,
     minDate,
     maxDate,
     setCurrentDate,
     handleMarkerClick,
+    handleStoryFocus,
     setActiveStoryId,
   };
 };
 
 export const berlinCoordinates: [number, number] = [52.52, 13.405];
-export const defaultZoom = 12;
+export const defaultZoom = 8;

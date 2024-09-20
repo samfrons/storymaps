@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import StoryList from './components/StoryList';
 import TimeSlider from './components/TimeSlider';
 import SidePanel from './components/SidePanel';
 import { StoryMap } from '../types';
+
 
 const Map = dynamic(() => import('./components/Map'), { ssr: false });
 
@@ -28,9 +29,9 @@ export default function Home() {
   const [minDate, setMinDate] = useState<Date | null>(null);
   const [maxDate, setMaxDate] = useState<Date | null>(null);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
-  const toggleSidePanel = () => {
-    setIsSidePanelOpen(prev => !prev);
-  };
+  const mapRef = useRef<any>(null);
+
+  const toggleSidePanel = () => setIsSidePanelOpen(prev => !prev);
 
   useEffect(() => {
     const fetchStories = async () => {
@@ -54,7 +55,6 @@ export default function Home() {
         if (allDates.length > 0) {
           const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
           const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
-          console.log('Date range:', { minDate, maxDate });
           setMinDate(minDate);
           setMaxDate(maxDate);
           setCurrentDate(minDate);
@@ -75,6 +75,10 @@ export default function Home() {
     setActiveStoryId(storyId);
     setFocusedStoryId(storyId);
     setIsSidePanelOpen(false);
+    const story = stories.find(s => s.id === storyId);
+    if (story && mapRef.current) {
+      mapRef.current.flyTo([story.latitude, story.longitude], defaultZoom);
+    }
   };
 
   const handleMarkerClick = (id: string) => {
@@ -84,63 +88,64 @@ export default function Home() {
 
   const handleStoryFocus = (storyId: string) => {
     setFocusedStoryId(storyId);
+    const story = stories.find(s => s.id === storyId);
+    if (story && mapRef.current) {
+      mapRef.current.flyTo([story.latitude, story.longitude], defaultZoom);
+    }
   };
-
-  console.log('Main Page Debug:', { currentDate, minDate, maxDate });
 
   if (!currentDate || !minDate || !maxDate) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="flex h-screen relative">
+    <div className="flex flex-col md:flex-row h-screen relative">
+      <button
+        onClick={toggleSidePanel}
+        className="fixed top-4 left-4 z-50 bg-primary text-white px-4 py-2 rounded-full shadow-lg"
+      >
+        {isSidePanelOpen ? 'Close' : 'Overview'}
+      </button>
+
       <SidePanel
         stories={stories}
         onStoryClick={handleStoryClick}
         isOpen={isSidePanelOpen}
         onClose={() => setIsSidePanelOpen(false)}
       />
-      
-      <div className={`flex flex-col md:flex-row w-full transition-all duration-300 ease-in-out ${isSidePanelOpen ? 'ml-64' : 'ml-0'}`}>
-        <button
-          onClick={toggleSidePanel}
-          className="fixed top-4 left-4 z-50 bg-primary text-white px-4 py-2 rounded-full shadow-lg"
-        >
-          {isSidePanelOpen ? 'Close' : 'Overview'}
-        </button>
 
-        <div className="w-full md:w-1/3 h-1/2 md:h-screen order-2 md:order-1 overflow-auto">
-          <StoryList
-            visibleStories={visibleStories}
-            activeStoryId={activeStoryId}
-            onStoryClick={handleStoryClick}
-            onStoryFocus={handleStoryFocus}
+      <div className="w-full md:w-1/3 h-1/2 md:h-screen order-2 md:order-1 overflow-auto">
+        <StoryList
+          visibleStories={visibleStories}
+          activeStoryId={activeStoryId}
+          onStoryClick={handleStoryClick}
+          onStoryFocus={handleStoryFocus}
+          minDate={minDate}
+          maxDate={maxDate}
+          currentDate={currentDate}
+          setCurrentDate={setCurrentDate}
+        />
+      </div>
+      <div className="w-full md:w-2/3 h-1/2 md:h-screen order-1 md:order-2 flex flex-col">
+        <div className="h-16">
+          <TimeSlider
             minDate={minDate}
             maxDate={maxDate}
             currentDate={currentDate}
-            setCurrentDate={setCurrentDate}
+            onChange={setCurrentDate}
           />
         </div>
-        <div className="w-full md:w-2/3 h-1/2 md:h-screen order-1 md:order-2 flex flex-col">
-          <div className="h-16">
-            <TimeSlider
-              minDate={minDate}
-              maxDate={maxDate}
-              currentDate={currentDate}
-              onChange={setCurrentDate}
-            />
-          </div>
-          <div className="flex-1">
-            <Map
-              stories={visibleStories}
-              center={berlinCoordinates}
-              zoom={defaultZoom}
-              onMarkerClick={handleMarkerClick}
-              activeMarkerId={activeStoryId}
-              currentDate={currentDate}
-              focusedStoryId={focusedStoryId}
-            />
-          </div>
+        <div className="flex-1">
+          <Map
+            stories={visibleStories}
+            center={berlinCoordinates}
+            zoom={defaultZoom}
+            onMarkerClick={handleMarkerClick}
+            activeMarkerId={activeStoryId}
+            currentDate={currentDate}
+            focusedStoryId={focusedStoryId}
+            ref={mapRef}
+          />
         </div>
       </div>
     </div>

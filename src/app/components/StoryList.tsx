@@ -15,6 +15,7 @@ interface StoryListProps {
   setCurrentDate: (date: Date) => void;
   onStoryClick: (storyId: string) => void;
   onStoryFocus: (storyId: string) => void;
+  focusedStoryId: string | null;
 }
 
 const StoryList: React.FC<StoryListProps> = ({
@@ -25,10 +26,12 @@ const StoryList: React.FC<StoryListProps> = ({
   currentDate,
   setCurrentDate,
   onStoryClick,
-  onStoryFocus
+  onStoryFocus,
+  focusedStoryId
 }) => {
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null);
   const storyRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const listRef = useRef<HTMLDivElement>(null);
 
   const handleViewDetails = (storyId: string) => {
     setSelectedStoryId(prevId => prevId === storyId ? null : storyId);
@@ -36,19 +39,21 @@ const StoryList: React.FC<StoryListProps> = ({
 
   const handleStoryClick = (storyId: string) => {
     onStoryClick(storyId);
-    onStoryFocus(storyId);
   };
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const windowHeight = window.innerHeight;
+      if (!listRef.current) return;
+
+      const scrollPosition = listRef.current.scrollTop;
+      const windowHeight = listRef.current.clientHeight;
 
       for (const storyId in storyRefs.current) {
         const element = storyRefs.current[storyId];
         if (element) {
           const rect = element.getBoundingClientRect();
-          if (rect.top >= 0 && rect.top <= windowHeight / 2) {
+          const elementTop = rect.top - listRef.current.getBoundingClientRect().top;
+          if (elementTop >= 0 && elementTop <= windowHeight / 2) {
             onStoryFocus(storyId);
             break;
           }
@@ -56,12 +61,26 @@ const StoryList: React.FC<StoryListProps> = ({
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const currentListRef = listRef.current;
+    if (currentListRef) {
+      currentListRef.addEventListener('scroll', handleScroll);
+    }
+
+    return () => {
+      if (currentListRef) {
+        currentListRef.removeEventListener('scroll', handleScroll);
+      }
+    };
   }, [onStoryFocus]);
 
+  useEffect(() => {
+    if (focusedStoryId && storyRefs.current[focusedStoryId]) {
+      storyRefs.current[focusedStoryId]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [focusedStoryId]);
+
   return (
-    <div className="w-full h-full overflow-y-auto p-4">
+    <div ref={listRef} className="w-full h-full overflow-y-auto p-4">
       <h1 className="text-3xl font-bold mb-4">Berlin Historical Tour</h1>
       
       <h2 className="text-2xl font-bold mt-8 mb-4">Stories</h2>

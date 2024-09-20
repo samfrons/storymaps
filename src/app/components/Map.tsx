@@ -41,7 +41,16 @@ function MapContent({
     if (focusedStoryId) {
       const story = stories.find(s => s.id === focusedStoryId);
       if (story) {
-        map.setView([Number(story.lat), Number(story.lng)], 15, { animate: true, duration: 1 });
+        const position: [number, number] = [Number(story.lat), Number(story.lng)];
+        
+        // Get the current map size
+        const mapSize = map.getSize();
+        
+        // Calculate the point that will center the marker
+        const targetPoint = map.project(position, 15).subtract([mapSize.x / 4, 0]);
+        const targetLatLng = map.unproject(targetPoint, 15);
+        
+        map.setView(targetLatLng, 15, { animate: true, duration: 1 });
         setActivePopup(focusedStoryId);
       }
     }
@@ -114,7 +123,6 @@ const Map: React.FC<MapProps> = ({
   focusedStoryId 
 }) => {
   return (
-    
     <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
       <MapContent 
         stories={stories} 
