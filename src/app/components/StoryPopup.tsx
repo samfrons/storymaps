@@ -12,6 +12,7 @@ interface StoryPopupProps {
 const StoryPopup: React.FC<StoryPopupProps> = ({ storyId, onClose }) => {
   const [story, setStory] = useState<StoryMap | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const fetchStory = async () => {
@@ -24,6 +25,8 @@ const StoryPopup: React.FC<StoryPopupProps> = ({ storyId, onClose }) => {
         }
         const data = await response.json();
         setStory(data);
+        // Trigger the open animation after fetching the data
+        setTimeout(() => setIsOpen(true), 50);
       } catch (error) {
         console.error('Error fetching story:', error);
         setError('Failed to load story. Please try again later.');
@@ -31,14 +34,24 @@ const StoryPopup: React.FC<StoryPopupProps> = ({ storyId, onClose }) => {
     };
 
     fetchStory();
+
+    // Clean up function
+    return () => {
+      setIsOpen(false);
+    };
   }, [storyId]);
 
   if (!storyId) return null;
 
+  const handleClose = () => {
+    setIsOpen(false);
+    setTimeout(onClose, 300); // Wait for the closing animation to finish
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <button onClick={onClose} className="float-right text-xl">&times;</button>
+    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`bg-white p-6 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto transition-all duration-300 ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
+        <button onClick={handleClose} className="float-right text-xl">&times;</button>
         {error ? (
           <div className="text-red-500">{error}</div>
         ) : !story ? (

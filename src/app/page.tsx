@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import StoryList from './components/StoryList';
 import TimeSlider from './components/TimeSlider';
@@ -30,7 +30,7 @@ export default function Home() {
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [popupStoryId, setPopupStoryId] = useState<string | null>(null);
 
-  const toggleSidePanel = () => setIsSidePanelOpen(prev => !prev);
+  const toggleSidePanel = useCallback(() => setIsSidePanelOpen(prev => !prev), []);
 
   useEffect(() => {
     const fetchStories = async () => {
@@ -70,15 +70,18 @@ export default function Home() {
     setVisibleStories(stories);
   }, [stories]);
 
-  const handleStoryActivate = (storyId: string) => {
+  const handleStoryActivate = useCallback((storyId: string) => {
     setActiveStoryId(storyId);
-    // Remove this line to prevent closing the side panel when activating a story
-    // setIsSidePanelOpen(false);
-  };
+    setIsSidePanelOpen(false);
+  }, []);
 
-  const handleViewFullStory = (storyId: string) => {
+  const handleViewFullStory = useCallback((storyId: string) => {
     setPopupStoryId(storyId);
-  };
+  }, []);
+
+  const closeSidePanel = useCallback(() => setIsSidePanelOpen(false), []);
+
+  const memoizedStories = useMemo(() => stories, [stories]);
 
   if (!currentDate || !minDate || !maxDate) {
     return <div>Loading...</div>;
@@ -87,16 +90,17 @@ export default function Home() {
   return (
     <div className="flex h-screen relative">
       <SidePanel
-        stories={stories}
+        stories={memoizedStories}
         onStoryClick={handleStoryActivate}
         isOpen={isSidePanelOpen}
-        onClose={() => setIsSidePanelOpen(false)}
+        onClose={closeSidePanel}
       />
       
       <div className={`flex flex-col md:flex-row w-full transition-all duration-300 ease-in-out ${isSidePanelOpen ? 'ml-64' : 'ml-0'}`}>
         <button
           onClick={toggleSidePanel}
           className="fixed top-4 left-4 z-50 bg-primary text-white px-4 py-2 rounded-full shadow-lg"
+          aria-label={isSidePanelOpen ? "Close overview" : "Open overview"}
         >
           {isSidePanelOpen ? 'Close' : 'Overview'}
         </button>
