@@ -1,8 +1,6 @@
-// Map.tsx
-
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import { useMarkerStates } from '../../hooks/useMarkerStates'
@@ -14,25 +12,22 @@ interface MapProps {
   center: [number, number];
   zoom: number;
   onMarkerClick: (id: string) => void;
-  activeMarkerId: string | null;
+  activeStoryId: string | null;
   currentDate: Date;
   mapStyle?: string;
-  focusedStoryId: string | null;
   onViewFullStory: (storyId: string) => void;
 }
 
 function MapContent({ 
   stories, 
   onMarkerClick, 
-  activeMarkerId, 
+  activeStoryId, 
   currentDate, 
   mapStyle,
-  focusedStoryId,
   onViewFullStory
 }: Omit<MapProps, 'center' | 'zoom'>) {
   const map = useMap();
   const markerRefs = useRef<{ [key: string]: L.Marker }>({});
-  const [activePopup, setActivePopup] = useState<string | null>(null);
   const markerStates = useMarkerStates(stories, currentDate);
   
   const markers: MarkerData[] = stories.map(story => ({
@@ -42,29 +37,21 @@ function MapContent({
   }));
 
   useEffect(() => {
-    if (focusedStoryId) {
-      const story = stories.find(s => s.id === focusedStoryId);
-      if (story) {
-        const position: [number, number] = [Number(story.lat), Number(story.lng)];
-        
-        const mapSize = map.getSize();
-        const targetPoint = map.project(position, 15).subtract([mapSize.x / 4, 0]);
-        const targetLatLng = map.unproject(targetPoint, 15);
-        
-        map.setView(targetLatLng, 15, { animate: true, duration: 1 });
-        setActivePopup(focusedStoryId);
+    if (activeStoryId) {
+      const activeStory = stories.find(s => s.id === activeStoryId);
+      if (activeStory) {
+        const position: [number, number] = [Number(activeStory.lat), Number(activeStory.lng)];
+        map.flyTo(position, 15, {
+          duration: 1.5,
+          easeLinearity: 0.25
+        });
+        const marker = markerRefs.current[activeStoryId];
+        if (marker) {
+          marker.openPopup();
+        }
       }
     }
-  }, [focusedStoryId, stories, map]);
-
-  useEffect(() => {
-    if (activePopup) {
-      const marker = markerRefs.current[activePopup];
-      if (marker) {
-        marker.openPopup();
-      }
-    }
-  }, [activePopup]);
+  }, [activeStoryId, stories, map]);
 
   const getMarkerIcon = (state: string, isActive: boolean) => {
     let className = `custom-marker ${state}`;
@@ -87,7 +74,7 @@ function MapContent({
       />
       {markers.map((marker) => {
         const markerState = markerStates.find(m => m.id === marker.id)?.state || 'normal';
-        const isActive = marker.id === activeMarkerId;
+        const isActive = marker.id === activeStoryId;
         return (
           <Marker 
             key={marker.id} 
@@ -97,7 +84,6 @@ function MapContent({
               click: (e) => {
                 L.DomEvent.stopPropagation(e);
                 onMarkerClick(marker.id);
-                setActivePopup(marker.id);
               },
             }}
             ref={(ref) => {
@@ -121,26 +107,10 @@ function MapContent({
   );
 }
 
-const Map: React.FC<MapProps> = ({ 
-  stories, 
-  center, 
-  zoom, 
-  onMarkerClick, 
-  activeMarkerId, 
-  currentDate,
-  focusedStoryId,
-  onViewFullStory
-}) => {
+const Map: React.FC<MapProps> = (props) => {
   return (
-    <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
-      <MapContent 
-        stories={stories} 
-        onMarkerClick={onMarkerClick} 
-        activeMarkerId={activeMarkerId} 
-        currentDate={currentDate}
-        focusedStoryId={focusedStoryId}
-        onViewFullStory={onViewFullStory}
-      />
+    <MapContainer center={props.center} zoom={props.zoom} style={{ height: '100%', width: '100%' }}>
+      <MapContent {...props} />
     </MapContainer>
   )
 }

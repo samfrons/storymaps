@@ -1,10 +1,7 @@
-// StoryList.tsx
-
 'use client';
 
 import Image from 'next/image';
 import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
 import { StoryMap } from '../types';
 import StoryDetail from './StoryDetail';
 
@@ -15,9 +12,7 @@ interface StoryListProps {
   maxDate: Date;
   currentDate: Date;
   setCurrentDate: (date: Date) => void;
-  onStoryClick: (storyId: string) => void;
-  onStoryFocus: (storyId: string) => void;
-  focusedStoryId: string | null;
+  onStoryActivate: (storyId: string) => void;
   onViewFullStory: (storyId: string) => void;
 }
 
@@ -28,9 +23,7 @@ const StoryList: React.FC<StoryListProps> = ({
   maxDate,
   currentDate,
   setCurrentDate,
-  onStoryClick,
-  onStoryFocus,
-  focusedStoryId,
+  onStoryActivate,
   onViewFullStory
 }) => {
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null);
@@ -39,10 +32,6 @@ const StoryList: React.FC<StoryListProps> = ({
 
   const handleViewDetails = (storyId: string) => {
     setSelectedStoryId(prevId => prevId === storyId ? null : storyId);
-  };
-
-  const handleStoryClick = (storyId: string) => {
-    onStoryClick(storyId);
   };
 
   useEffect(() => {
@@ -58,7 +47,7 @@ const StoryList: React.FC<StoryListProps> = ({
           const rect = element.getBoundingClientRect();
           const elementTop = rect.top - listRef.current.getBoundingClientRect().top;
           if (elementTop >= 0 && elementTop <= windowHeight / 2) {
-            onStoryFocus(storyId);
+            onStoryActivate(storyId);
             break;
           }
         }
@@ -75,13 +64,7 @@ const StoryList: React.FC<StoryListProps> = ({
         currentListRef.removeEventListener('scroll', handleScroll);
       }
     };
-  }, [onStoryFocus]);
-
-  useEffect(() => {
-    if (focusedStoryId && storyRefs.current[focusedStoryId]) {
-      storyRefs.current[focusedStoryId]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [focusedStoryId]);
+  }, [onStoryActivate]);
 
   return (
     <div ref={listRef} className="w-full h-full overflow-y-auto p-4">
@@ -94,7 +77,7 @@ const StoryList: React.FC<StoryListProps> = ({
           ref={el => storyRefs.current[story.id] = el}
           className={`story-item mb-4 p-4 bg-base-200 rounded-lg ${story.id === activeStoryId ? 'border-2 border-primary' : ''}`}
         >
-          <div onClick={() => handleStoryClick(story.id)} className="cursor-pointer">
+          <div onClick={() => onStoryActivate(story.id)} className="cursor-pointer">
             <h3 className="text-xl font-semibold mb-2">{story.title}</h3>
             {story.imageUrls && story.imageUrls.length > 0 && (
               <div className="relative w-full h-48 mb-2">
@@ -107,8 +90,6 @@ const StoryList: React.FC<StoryListProps> = ({
                 />
               </div>
             )}
-            
-            {story.mediaLink && <img src={story.mediaLink} alt={story.title} className="w-full h-auto mb-2" />}
             <p>Start: {story.startDate ? new Date(story.startDate).getFullYear() : 'N/A'}</p>
             <p>End: {story.endDate ? new Date(story.endDate).getFullYear() : 'N/A'}</p>
           </div>

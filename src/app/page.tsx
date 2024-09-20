@@ -1,14 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import StoryList from './components/StoryList';
 import TimeSlider from './components/TimeSlider';
 import SidePanel from './components/SidePanel';
 import StoryPopup from './components/StoryPopup';
 import { StoryMap } from '../types';
-
-
 
 const Map = dynamic(() => import('./components/Map'), { ssr: false });
 
@@ -26,13 +24,11 @@ export default function Home() {
   const [stories, setStories] = useState<StoryMap[]>([]);
   const [visibleStories, setVisibleStories] = useState<StoryMap[]>([]);
   const [activeStoryId, setActiveStoryId] = useState<string | null>(null);
-  const [focusedStoryId, setFocusedStoryId] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
   const [minDate, setMinDate] = useState<Date | null>(null);
   const [maxDate, setMaxDate] = useState<Date | null>(null);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [popupStoryId, setPopupStoryId] = useState<string | null>(null);
-  const mapRef = useRef<any>(null);
 
   const toggleSidePanel = () => setIsSidePanelOpen(prev => !prev);
 
@@ -74,30 +70,12 @@ export default function Home() {
     setVisibleStories(stories);
   }, [stories]);
 
-  const handleStoryClick = (storyId: string) => {
+  const handleStoryActivate = (storyId: string) => {
     setActiveStoryId(storyId);
-    setFocusedStoryId(storyId);
     setIsSidePanelOpen(false);
-    const story = stories.find(s => s.id === storyId);
-    if (story && mapRef.current) {
-      mapRef.current.flyTo([story.latitude, story.longitude], defaultZoom);
-    }
   };
 
-  const handleMarkerClick = (id: string) => {
-    setActiveStoryId(id);
-    setFocusedStoryId(id);
-  };
-
-  const handleStoryFocus = (storyId: string) => {
-    setFocusedStoryId(storyId);
-    const story = stories.find(s => s.id === storyId);
-    if (story && mapRef.current) {
-      mapRef.current.flyTo([story.latitude, story.longitude], defaultZoom);
-    }
-  };
-
-   const handleViewFullStory = (storyId: string) => {
+  const handleViewFullStory = (storyId: string) => {
     setPopupStoryId(storyId);
   };
 
@@ -105,11 +83,11 @@ export default function Home() {
     return <div>Loading...</div>;
   }
 
-   return (
+  return (
     <div className="flex h-screen relative">
       <SidePanel
         stories={stories}
-        onStoryClick={handleStoryClick}
+        onStoryClick={handleStoryActivate}
         isOpen={isSidePanelOpen}
         onClose={() => setIsSidePanelOpen(false)}
       />
@@ -126,12 +104,11 @@ export default function Home() {
           <StoryList
             visibleStories={visibleStories}
             activeStoryId={activeStoryId}
-            onStoryClick={handleStoryClick}
-            onStoryFocus={handleStoryFocus}
             minDate={minDate}
             maxDate={maxDate}
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
+            onStoryActivate={handleStoryActivate}
             onViewFullStory={handleViewFullStory}
           />
         </div>
@@ -145,16 +122,15 @@ export default function Home() {
             />
           </div>
           <div className="flex-1">
-           <Map
-  stories={visibleStories}
-  center={berlinCoordinates}
-  zoom={defaultZoom}
-  onMarkerClick={handleMarkerClick}
-  activeMarkerId={activeStoryId}
-  currentDate={currentDate}
-  focusedStoryId={focusedStoryId}
-  onViewFullStory={handleViewFullStory}
-/>
+            <Map
+              stories={visibleStories}
+              center={berlinCoordinates}
+              zoom={defaultZoom}
+              onMarkerClick={handleStoryActivate}
+              activeStoryId={activeStoryId}
+              currentDate={currentDate}
+              onViewFullStory={handleViewFullStory}
+            />
           </div>
         </div>
       </div>
