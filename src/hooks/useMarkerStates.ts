@@ -1,35 +1,28 @@
-// hooks/useMarkerStates.ts
-
 import { useMemo } from 'react';
 import { StoryMap } from '../types';
 
-export const useMarkerStates = (stories: StoryMap[], currentYear: number) => {
+export const useMarkerStates = (stories: StoryMap[], currentDate: Date) => {
   return useMemo(() => {
     return stories.map(story => {
-      const startYear = story.startDate ? new Date(story.startDate).getFullYear() : null;
-      const midYear = story.midDate ? new Date(story.midDate).getFullYear() : null;
-      const endYear = story.endDate ? new Date(story.endDate).getFullYear() : null;
+      const startDate = new Date(story.startDate);
+      const endDate = new Date(story.endDate);
+      const midDate = story.midDate ? new Date(story.midDate) : null;
 
-      let state = 'normal';
+      let state = 'future';
       
-      if (startYear && currentYear >= startYear) {
+      if (currentDate >= startDate) {
         state = 'active';
         
-        if (midYear && currentYear >= midYear) {
+        if (midDate && currentDate >= midDate) {
           state = 'overtaken';
         }
         
-        if (endYear && currentYear >= endYear) {
+        if (currentDate >= endDate) {
           state = 'closed';
         }
-      } 
-
-
-      /* else if (startYear && currentYear < startYear) {
-        state = 'future';
-      } */
+      }
 
       return { id: story.id, state };
     });
-  }, [stories, currentYear]);
+  }, [stories, currentDate]);
 };

@@ -68,3 +68,44 @@ h3 {
 .custom-marker.active {
   background-color: #3c9be7; 
 }
+
+.custom-marker.future {
+  background-color: gray;
+}
+
+.custom-marker.active {
+  background-color: green;
+}
+
+.custom-marker.overtaken {
+  background-color: orange;
+}
+
+.custom-marker.closed {
+  background-color: red;
+}
+
+.custom-marker.active {
+  transform: scale(1.2);
+}
+
+
+
+.side-panel {
+  background: white;
+}
+
+.side-panel-enter {
+  transform: translateX(-100%);
+}
+.side-panel-enter-active {
+  transform: translateX(0);
+  transition: transform 300ms ease-in;
+}
+.side-panel-exit {
+  transform: translateX(0);
+}
+.side-panel-exit-active {
+  transform: translateX(-100%);
+  transition: transform 300ms ease-in;
+}

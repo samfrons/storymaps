@@ -5,9 +5,9 @@ export interface StoryMap {
   longDescription: string | null;
   lat: number;
   lng: number;
-  startDate: string | null;
-  midDate: string | null;
-  endDate: string | null;
+  startDate: number | string | null;
+  midDate?: number | string | null;
+  endDate: number | string | null;
   media: MediaItem[] | null;
   imageUrls: string[]; 
   zoom?: number;

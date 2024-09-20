@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
-import { focusMap } from '../../hooks/useMapFocus'
 import { useMarkerStates } from '../../hooks/useMarkerStates'
 import { StoryMap, MarkerData } from '../types'
 import 'leaflet/dist/leaflet.css'
@@ -14,47 +13,48 @@ interface MapProps {
   zoom: number;
   onMarkerClick: (id: string) => void;
   activeMarkerId: string | null;
-  currentYear: number;
+  currentDate: Date;
   mapStyle?: string;
+  focusedStoryId: string | null;
 }
 
-function MapContent({ stories, onMarkerClick, activeMarkerId, currentYear, mapStyle }: Omit<MapProps, 'center' | 'zoom'>) {
+function MapContent({ 
+  stories, 
+  onMarkerClick, 
+  activeMarkerId, 
+  currentDate, 
+  mapStyle,
+  focusedStoryId 
+}: Omit<MapProps, 'center' | 'zoom'>) {
   const map = useMap();
   const markerRefs = useRef<{ [key: string]: L.Marker }>({});
-  const [scrolledStoryId, setScrolledStoryId] = useState<string | null>(null);
+  const [activePopup, setActivePopup] = useState<string | null>(null);
+  const markerStates = useMarkerStates(stories, currentDate);
   
   const markers: MarkerData[] = stories.map(story => ({
     id: story.id,
-    position: [story.lat, story.lng] as [number, number],
+    position: [Number(story.lat), Number(story.lng)] as [number, number],
     popup: story.title
   }));
 
-  const markerStates = useMarkerStates(stories, currentYear);
-
   useEffect(() => {
-    focusMap(map, activeMarkerId, markers, scrolledStoryId);
-  }, [map, activeMarkerId, markers, scrolledStoryId]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const storyElements = document.querySelectorAll('.story-item');
-      const scrollPosition = window.scrollY;
-      const windowHeight = window.innerHeight;
-
-      for (let i = 0; i < storyElements.length; i++) {
-        const element = storyElements[i] as HTMLElement;
-        const rect = element.getBoundingClientRect();
-
-        if (rect.top >= 0 && rect.top <= windowHeight / 2) {
-          setScrolledStoryId(element.id);
-          break;
-        }
+    if (focusedStoryId) {
+      const story = stories.find(s => s.id === focusedStoryId);
+      if (story) {
+        map.setView([Number(story.lat), Number(story.lng)], 15, { animate: true, duration: 1 });
+        setActivePopup(focusedStoryId);
       }
-    };
+    }
+  }, [focusedStoryId, stories, map]);
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  useEffect(() => {
+    if (activePopup) {
+      const marker = markerRefs.current[activePopup];
+      if (marker) {
+        marker.openPopup();
+      }
+    }
+  }, [activePopup]);
 
   const getMarkerIcon = (state: string, isActive: boolean) => {
     let className = `custom-marker ${state}`;
@@ -87,6 +87,7 @@ function MapContent({ stories, onMarkerClick, activeMarkerId, currentYear, mapSt
               click: (e) => {
                 L.DomEvent.stopPropagation(e);
                 onMarkerClick(marker.id);
+                setActivePopup(marker.id);
               },
             }}
             ref={(ref) => {
@@ -103,14 +104,24 @@ function MapContent({ stories, onMarkerClick, activeMarkerId, currentYear, mapSt
   );
 }
 
-const Map: React.FC<MapProps> = ({ stories, center, zoom, onMarkerClick, activeMarkerId, currentYear }) => {
+const Map: React.FC<MapProps> = ({ 
+  stories, 
+  center, 
+  zoom, 
+  onMarkerClick, 
+  activeMarkerId, 
+  currentDate,
+  focusedStoryId 
+}) => {
   return (
+    
     <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
       <MapContent 
         stories={stories} 
         onMarkerClick={onMarkerClick} 
         activeMarkerId={activeMarkerId} 
-        currentYear={currentYear}
+        currentDate={currentDate}
+        focusedStoryId={focusedStoryId}
       />
     </MapContainer>
   )

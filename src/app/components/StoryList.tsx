@@ -1,12 +1,10 @@
-// file: src/app/components/StoryList.tsx
 'use client';
 
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { StoryMap } from '../types';
 import StoryDetail from './StoryDetail';
-import TimeSlider from './TimeSlider';
 
 interface StoryListProps {
   visibleStories: StoryMap[];
@@ -16,6 +14,7 @@ interface StoryListProps {
   currentDate: Date;
   setCurrentDate: (date: Date) => void;
   onStoryClick: (storyId: string) => void;
+  onStoryFocus: (storyId: string) => void;
 }
 
 const StoryList: React.FC<StoryListProps> = ({
@@ -25,9 +24,11 @@ const StoryList: React.FC<StoryListProps> = ({
   maxDate,
   currentDate,
   setCurrentDate,
-  onStoryClick
+  onStoryClick,
+  onStoryFocus
 }) => {
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null);
+  const storyRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   const handleViewDetails = (storyId: string) => {
     setSelectedStoryId(prevId => prevId === storyId ? null : storyId);
@@ -35,7 +36,29 @@ const StoryList: React.FC<StoryListProps> = ({
 
   const handleStoryClick = (storyId: string) => {
     onStoryClick(storyId);
+    onStoryFocus(storyId);
   };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      const windowHeight = window.innerHeight;
+
+      for (const storyId in storyRefs.current) {
+        const element = storyRefs.current[storyId];
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top >= 0 && rect.top <= windowHeight / 2) {
+            onStoryFocus(storyId);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [onStoryFocus]);
 
   return (
     <div className="w-full h-full overflow-y-auto p-4">
@@ -45,7 +68,7 @@ const StoryList: React.FC<StoryListProps> = ({
       {visibleStories.map((story) => (
         <div 
           key={story.id}
-          id={story.id}
+          ref={el => storyRefs.current[story.id] = el}
           className={`story-item mb-4 p-4 bg-base-200 rounded-lg ${story.id === activeStoryId ? 'border-2 border-primary' : ''}`}
         >
           <div onClick={() => handleStoryClick(story.id)} className="cursor-pointer">
