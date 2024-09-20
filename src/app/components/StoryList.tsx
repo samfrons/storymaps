@@ -5,6 +5,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StoryMap } from '../types';
 import StoryDetail from './StoryDetail';
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('scroll', (e) => {
+    console.log('Window scroll event', e.target);
+  }, true);
+}
+
 interface StoryListProps {
   visibleStories: StoryMap[];
   activeStoryId: string | null;
@@ -35,39 +41,74 @@ const StoryList: React.FC<StoryListProps> = ({
   };
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (!listRef.current) return;
+    const handleScroll = (e: Event) => {
+      console.log('Scroll event fired on', e.target);
+      const scrollElement = e.target as Element;
+      const scrollPosition = scrollElement.scrollTop;
+      console.log('Scroll position:', scrollPosition);
 
-      const scrollPosition = listRef.current.scrollTop;
-      const windowHeight = listRef.current.clientHeight;
+      const scrollIndicator = document.getElementById('scrollIndicator');
+      if (scrollIndicator) {
+        scrollIndicator.textContent = scrollPosition.toString();
+      }
+
+      const windowHeight = scrollElement.clientHeight;
+
+      let closestStory: { id: string; distance: number } | null = null;
 
       for (const storyId in storyRefs.current) {
         const element = storyRefs.current[storyId];
         if (element) {
           const rect = element.getBoundingClientRect();
-          const elementTop = rect.top - listRef.current.getBoundingClientRect().top;
-          if (elementTop >= 0 && elementTop <= windowHeight / 2) {
-            onStoryActivate(storyId);
-            break;
+          const elementTop = rect.top - scrollElement.getBoundingClientRect().top;
+          const elementCenter = elementTop + rect.height / 2;
+          const distanceFromCenter = Math.abs(windowHeight / 2 - elementCenter);
+
+          console.log(`Story ${storyId}:`, {
+            elementTop,
+            elementCenter,
+            distanceFromCenter
+          });
+
+          if (!closestStory || distanceFromCenter < closestStory.distance) {
+            closestStory = { id: storyId, distance: distanceFromCenter };
           }
         }
       }
+
+      if (closestStory) {
+        console.log('Closest story:', closestStory.id);
+        onStoryActivate(closestStory.id);
+      }
     };
 
-    const currentListRef = listRef.current;
-    if (currentListRef) {
-      currentListRef.addEventListener('scroll', handleScroll);
-    }
+    const possibleScrollElements = [
+      
+      document.querySelector('#story-list-container')
+   
+    ];
+
+    possibleScrollElements.forEach(element => {
+      if (element) {
+        element.addEventListener('scroll', handleScroll, { passive: true });
+        console.log('Scroll listener added to', element);
+      }
+    });
 
     return () => {
-      if (currentListRef) {
-        currentListRef.removeEventListener('scroll', handleScroll);
-      }
+      possibleScrollElements.forEach(element => {
+        if (element) {
+          element.removeEventListener('scroll', handleScroll);
+        }
+      });
     };
   }, [onStoryActivate]);
 
   return (
-    <div ref={listRef} className="w-full h-full overflow-y-auto p-4">
+    <div ref={listRef} id="story-list-container" className="story-list w-full h-full overflow-y-auto p-4">
+      <div className="fixed top-0 right-0 bg-black text-white p-2">
+        Scroll: <span id="scrollIndicator">0</span>
+      </div>
       <h1 className="text-3xl font-bold mb-4">Berlin Historical Tour</h1>
       
       <h2 className="text-2xl font-bold mt-8 mb-4">Stories</h2>
@@ -87,6 +128,7 @@ const StoryList: React.FC<StoryListProps> = ({
                   layout="fill"
                   objectFit="cover"
                   className="rounded"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
             )}
