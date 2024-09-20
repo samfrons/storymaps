@@ -130,6 +130,7 @@ export default function Home() {
               activeStoryId={activeStoryId}
               currentDate={currentDate}
               onViewFullStory={handleViewFullStory}
+               onStoryActivate={handleStoryActivate}
             />
           </div>
         </div>
