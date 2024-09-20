@@ -30,6 +30,7 @@ const StoryList: React.FC<StoryListProps> = ({
   const storyRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const listRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isScrollingRef = useRef<boolean>(false);
 
   const handleViewDetails = (storyId: string) => {
     setSelectedStoryId(prevId => prevId === storyId ? null : storyId);
@@ -40,7 +41,7 @@ const StoryList: React.FC<StoryListProps> = ({
       clearTimeout(scrollTimeoutRef.current);
     }
     scrollTimeoutRef.current = setTimeout(() => {
-      if (!listRef.current) return;
+      if (!listRef.current || isScrollingRef.current) return;
 
       const scrollPosition = listRef.current.scrollTop;
       const windowHeight = listRef.current.clientHeight;
@@ -64,7 +65,7 @@ const StoryList: React.FC<StoryListProps> = ({
       if (closestStory && closestStory.id !== activeStoryId) {
         onStoryActivate(closestStory.id);
       }
-    }, 100); // Adjust this delay as needed
+    }, 100);
   }, [onStoryActivate, activeStoryId]);
 
   useEffect(() => {
@@ -85,10 +86,14 @@ const StoryList: React.FC<StoryListProps> = ({
 
   useEffect(() => {
     if (activeStoryId && storyRefs.current[activeStoryId]) {
+      isScrollingRef.current = true;
       storyRefs.current[activeStoryId]?.scrollIntoView({
         behavior: 'smooth',
         block: 'center'
       });
+      setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 1000); // Adjust this timeout if needed
     }
   }, [activeStoryId]);
 
@@ -101,7 +106,7 @@ const StoryList: React.FC<StoryListProps> = ({
         <div 
           key={story.id}
           ref={el => storyRefs.current[story.id] = el}
-          className={`story-item mb-4 p-4 bg-base-200 rounded-lg ${story.id === activeStoryId ? 'border-2 border-primary' : ''}`}
+          className={`story-item mb-4 p-4 bg-base-200 rounded-lg transition-all duration-300 ${story.id === activeStoryId ? 'border-2 border-primary' : 'border-2 border-transparent'}`}
         >
           <div onClick={() => onStoryActivate(story.id)} className="cursor-pointer">
             <h3 className="text-xl font-semibold mb-2">{story.title}</h3>
