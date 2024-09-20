@@ -1,3 +1,5 @@
+// StoryList.tsx
+
 'use client';
 
 import Image from 'next/image';
@@ -16,6 +18,7 @@ interface StoryListProps {
   onStoryClick: (storyId: string) => void;
   onStoryFocus: (storyId: string) => void;
   focusedStoryId: string | null;
+  onViewFullStory: (storyId: string) => void;
 }
 
 const StoryList: React.FC<StoryListProps> = ({
@@ -27,7 +30,8 @@ const StoryList: React.FC<StoryListProps> = ({
   setCurrentDate,
   onStoryClick,
   onStoryFocus,
-  focusedStoryId
+  focusedStoryId,
+  onViewFullStory
 }) => {
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null);
   const storyRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -91,9 +95,7 @@ const StoryList: React.FC<StoryListProps> = ({
           className={`story-item mb-4 p-4 bg-base-200 rounded-lg ${story.id === activeStoryId ? 'border-2 border-primary' : ''}`}
         >
           <div onClick={() => handleStoryClick(story.id)} className="cursor-pointer">
-            <Link href={`/story/${story.id}`}>
-              <h3 className="text-xl font-semibold mb-2">{story.title}</h3>
-            </Link>
+            <h3 className="text-xl font-semibold mb-2">{story.title}</h3>
             {story.imageUrls && story.imageUrls.length > 0 && (
               <div className="relative w-full h-48 mb-2">
                 <Image
@@ -105,19 +107,28 @@ const StoryList: React.FC<StoryListProps> = ({
                 />
               </div>
             )}
-            <p className="mb-2">{story.description}</p>
+            
             {story.mediaLink && <img src={story.mediaLink} alt={story.title} className="w-full h-auto mb-2" />}
             <p>Start: {story.startDate ? new Date(story.startDate).getFullYear() : 'N/A'}</p>
             <p>End: {story.endDate ? new Date(story.endDate).getFullYear() : 'N/A'}</p>
           </div>
           <button
-            className="btn btn-secondary btn-sm mt-2"
+            className="btn btn-secondary btn-sm mt-2 mr-2"
             onClick={(e) => {
               e.stopPropagation();
               handleViewDetails(story.id);
             }}
           >
             {selectedStoryId === story.id ? 'Hide Details' : 'View Details'}
+          </button>
+          <button
+            className="btn btn-primary btn-sm mt-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewFullStory(story.id);
+            }}
+          >
+            View Full Story
           </button>
           {selectedStoryId === story.id && (
             <StoryDetail story={story} />

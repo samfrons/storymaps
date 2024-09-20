@@ -1,3 +1,5 @@
+// Map.tsx
+
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
@@ -16,6 +18,7 @@ interface MapProps {
   currentDate: Date;
   mapStyle?: string;
   focusedStoryId: string | null;
+  onViewFullStory: (storyId: string) => void;
 }
 
 function MapContent({ 
@@ -24,7 +27,8 @@ function MapContent({
   activeMarkerId, 
   currentDate, 
   mapStyle,
-  focusedStoryId 
+  focusedStoryId,
+  onViewFullStory
 }: Omit<MapProps, 'center' | 'zoom'>) {
   const map = useMap();
   const markerRefs = useRef<{ [key: string]: L.Marker }>({});
@@ -43,10 +47,7 @@ function MapContent({
       if (story) {
         const position: [number, number] = [Number(story.lat), Number(story.lng)];
         
-        // Get the current map size
         const mapSize = map.getSize();
-        
-        // Calculate the point that will center the marker
         const targetPoint = map.project(position, 15).subtract([mapSize.x / 4, 0]);
         const targetLatLng = map.unproject(targetPoint, 15);
         
@@ -105,7 +106,14 @@ function MapContent({
               }
             }}
           >
-            <Popup>{marker.popup}</Popup>
+            <Popup>
+              <div>
+                <h3>{marker.popup}</h3>
+                <button onClick={() => onViewFullStory(marker.id)} className="btn btn-primary btn-sm mt-2">
+                  View Full Story
+                </button>
+              </div>
+            </Popup>
           </Marker>
         );
       })}
@@ -120,7 +128,8 @@ const Map: React.FC<MapProps> = ({
   onMarkerClick, 
   activeMarkerId, 
   currentDate,
-  focusedStoryId 
+  focusedStoryId,
+  onViewFullStory
 }) => {
   return (
     <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
@@ -130,6 +139,7 @@ const Map: React.FC<MapProps> = ({
         activeMarkerId={activeMarkerId} 
         currentDate={currentDate}
         focusedStoryId={focusedStoryId}
+        onViewFullStory={onViewFullStory}
       />
     </MapContainer>
   )

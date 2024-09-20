@@ -5,7 +5,9 @@ import dynamic from 'next/dynamic';
 import StoryList from './components/StoryList';
 import TimeSlider from './components/TimeSlider';
 import SidePanel from './components/SidePanel';
+import StoryPopup from './components/StoryPopup';
 import { StoryMap } from '../types';
+
 
 
 const Map = dynamic(() => import('./components/Map'), { ssr: false });
@@ -29,6 +31,7 @@ export default function Home() {
   const [minDate, setMinDate] = useState<Date | null>(null);
   const [maxDate, setMaxDate] = useState<Date | null>(null);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
+  const [popupStoryId, setPopupStoryId] = useState<string | null>(null);
   const mapRef = useRef<any>(null);
 
   const toggleSidePanel = () => setIsSidePanelOpen(prev => !prev);
@@ -94,11 +97,15 @@ export default function Home() {
     }
   };
 
+   const handleViewFullStory = (storyId: string) => {
+    setPopupStoryId(storyId);
+  };
+
   if (!currentDate || !minDate || !maxDate) {
     return <div>Loading...</div>;
   }
 
-  return (
+   return (
     <div className="flex h-screen relative">
       <SidePanel
         stories={stories}
@@ -125,6 +132,7 @@ export default function Home() {
             maxDate={maxDate}
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
+            onViewFullStory={handleViewFullStory}
           />
         </div>
         <div className="w-full md:w-2/3 h-1/2 md:h-screen order-1 md:order-2 flex flex-col">
@@ -137,18 +145,26 @@ export default function Home() {
             />
           </div>
           <div className="flex-1">
-            <Map
-              stories={visibleStories}
-              center={berlinCoordinates}
-              zoom={defaultZoom}
-              onMarkerClick={handleMarkerClick}
-              activeMarkerId={activeStoryId}
-              currentDate={currentDate}
-              focusedStoryId={focusedStoryId}
-            />
+           <Map
+  stories={visibleStories}
+  center={berlinCoordinates}
+  zoom={defaultZoom}
+  onMarkerClick={handleMarkerClick}
+  activeMarkerId={activeStoryId}
+  currentDate={currentDate}
+  focusedStoryId={focusedStoryId}
+  onViewFullStory={handleViewFullStory}
+/>
           </div>
         </div>
       </div>
+      {popupStoryId && (
+        <StoryPopup
+          storyId={popupStoryId}
+          onClose={() => setPopupStoryId(null)}
+          story={stories.find(s => s.id === popupStoryId)}
+        />
+      )}
     </div>
   );
 }
