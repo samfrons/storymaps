@@ -79,10 +79,6 @@ export default function Home() {
     setPopupStoryId(storyId);
   };
 
-  const handleStoryScroll = (storyId: string) => {
-    setActiveStoryId(storyId);
-  };
-
   if (!currentDate || !minDate || !maxDate) {
     return <div>Loading...</div>;
   }
@@ -104,7 +100,7 @@ export default function Home() {
           {isSidePanelOpen ? 'Close' : 'Overview'}
         </button>
 
-        <div className="story-list w-full md:w-1/3 h-1/2 md:h-screen order-2 md:order-1 overflow-auto">
+        <div className="w-full md:w-1/3 h-1/2 md:h-screen order-2 md:order-1 overflow-auto">
           <StoryList
             visibleStories={visibleStories}
             activeStoryId={activeStoryId}
@@ -114,7 +110,6 @@ export default function Home() {
             setCurrentDate={setCurrentDate}
             onStoryActivate={handleStoryActivate}
             onViewFullStory={handleViewFullStory}
-            onStoryScroll={handleStoryScroll}
           />
         </div>
         <div className="w-full md:w-2/3 h-1/2 md:h-screen order-1 md:order-2 flex flex-col">

@@ -84,7 +84,7 @@ const StoryList: React.FC<StoryListProps> = ({
 
     const possibleScrollElements = [
       
-      document.querySelector('#story-list-container')
+      document.querySelector('#story-list-container'),
    
     ];
 
