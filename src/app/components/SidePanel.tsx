@@ -16,7 +16,7 @@ const SidePanel: React.FC<SidePanelProps> = ({ stories, onStoryClick, isOpen, on
 
   return (
     <div 
-      className={`fixed left-0 top-0 h-full w-64 bg-base-200 p-4 overflow-y-auto shadow-lg z-40 transition-transform duration-300 ease-in-out ${
+      className={`side-panel fixed left-0 top-0 h-full w-64 bg-base-200 p-4 overflow-y-auto shadow-lg z-40 transition-transform duration-300 ease-in-out ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >

@@ -99,53 +99,54 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-screen relative">
-      <button
-        onClick={toggleSidePanel}
-        className="fixed top-4 left-4 z-50 bg-primary text-white px-4 py-2 rounded-full shadow-lg"
-      >
-        {isSidePanelOpen ? 'Close' : 'Overview'}
-      </button>
-
+    <div className="flex h-screen relative">
       <SidePanel
         stories={stories}
         onStoryClick={handleStoryClick}
         isOpen={isSidePanelOpen}
         onClose={() => setIsSidePanelOpen(false)}
       />
+      
+      <div className={`flex flex-col md:flex-row w-full transition-all duration-300 ease-in-out ${isSidePanelOpen ? 'ml-64' : 'ml-0'}`}>
+        <button
+          onClick={toggleSidePanel}
+          className="fixed top-4 left-4 z-50 bg-primary text-white px-4 py-2 rounded-full shadow-lg"
+        >
+          {isSidePanelOpen ? 'Close' : 'Overview'}
+        </button>
 
-      <div className="w-full md:w-1/3 h-1/2 md:h-screen order-2 md:order-1 overflow-auto">
-        <StoryList
-          visibleStories={visibleStories}
-          activeStoryId={activeStoryId}
-          onStoryClick={handleStoryClick}
-          onStoryFocus={handleStoryFocus}
-          minDate={minDate}
-          maxDate={maxDate}
-          currentDate={currentDate}
-          setCurrentDate={setCurrentDate}
-        />
-      </div>
-      <div className="w-full md:w-2/3 h-1/2 md:h-screen order-1 md:order-2 flex flex-col">
-        <div className="h-16">
-          <TimeSlider
+        <div className="w-full md:w-1/3 h-1/2 md:h-screen order-2 md:order-1 overflow-auto">
+          <StoryList
+            visibleStories={visibleStories}
+            activeStoryId={activeStoryId}
+            onStoryClick={handleStoryClick}
+            onStoryFocus={handleStoryFocus}
             minDate={minDate}
             maxDate={maxDate}
             currentDate={currentDate}
-            onChange={setCurrentDate}
+            setCurrentDate={setCurrentDate}
           />
         </div>
-        <div className="flex-1">
-          <Map
-            stories={visibleStories}
-            center={berlinCoordinates}
-            zoom={defaultZoom}
-            onMarkerClick={handleMarkerClick}
-            activeMarkerId={activeStoryId}
-            currentDate={currentDate}
-            focusedStoryId={focusedStoryId}
-            ref={mapRef}
-          />
+        <div className="w-full md:w-2/3 h-1/2 md:h-screen order-1 md:order-2 flex flex-col">
+          <div className="h-16">
+            <TimeSlider
+              minDate={minDate}
+              maxDate={maxDate}
+              currentDate={currentDate}
+              onChange={setCurrentDate}
+            />
+          </div>
+          <div className="flex-1">
+            <Map
+              stories={visibleStories}
+              center={berlinCoordinates}
+              zoom={defaultZoom}
+              onMarkerClick={handleMarkerClick}
+              activeMarkerId={activeStoryId}
+              currentDate={currentDate}
+              focusedStoryId={focusedStoryId}
+            />
+          </div>
         </div>
       </div>
     </div>

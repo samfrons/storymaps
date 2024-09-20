@@ -1,7 +1,7 @@
 import { Map as LeafletMap } from 'leaflet';
 import { MarkerData } from '../types';
 
-const DEFAULT_ZOOM = 15;
+const DEFAULT_ZOOM = 10;
 
 export const focusMap = (
   map: LeafletMap,
