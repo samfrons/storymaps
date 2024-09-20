@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import { useMarkerStates } from '../../hooks/useMarkerStates'
@@ -28,6 +28,7 @@ function MapContent({
 }: Omit<MapProps, 'center' | 'zoom'>) {
   const map = useMap();
   const markerRefs = useRef<{ [key: string]: L.Marker }>({});
+  const [openPopupId, setOpenPopupId] = useState<string | null>(null);
   const markerStates = useMarkerStates(stories, currentDate);
   
   const markers: MarkerData[] = stories.map(story => ({
@@ -48,6 +49,7 @@ function MapContent({
         const marker = markerRefs.current[activeStoryId];
         if (marker) {
           marker.openPopup();
+          setOpenPopupId(activeStoryId);
         }
       }
     }
@@ -74,7 +76,7 @@ function MapContent({
       />
       {markers.map((marker) => {
         const markerState = markerStates.find(m => m.id === marker.id)?.state || 'normal';
-        const isActive = marker.id === activeStoryId;
+        const isActive = marker.id === activeStoryId || marker.id === openPopupId;
         return (
           <Marker 
             key={marker.id} 
@@ -83,6 +85,12 @@ function MapContent({
             eventHandlers={{
               click: () => {
                 onMarkerClick(marker.id);
+                setOpenPopupId(marker.id);
+              },
+              popupclose: () => {
+                if (openPopupId === marker.id) {
+                  setOpenPopupId(null);
+                }
               },
             }}
             ref={(ref) => {

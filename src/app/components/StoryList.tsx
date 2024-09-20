@@ -1,15 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { StoryMap } from '../types';
 import StoryDetail from './StoryDetail';
-
-if (typeof window !== 'undefined') {
-  window.addEventListener('scroll', (e) => {
-    console.log('Window scroll event', e.target);
-  }, true);
-}
 
 interface StoryListProps {
   visibleStories: StoryMap[];
@@ -35,24 +29,21 @@ const StoryList: React.FC<StoryListProps> = ({
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null);
   const storyRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const listRef = useRef<HTMLDivElement>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleViewDetails = (storyId: string) => {
     setSelectedStoryId(prevId => prevId === storyId ? null : storyId);
   };
 
-  useEffect(() => {
-    const handleScroll = (e: Event) => {
-      console.log('Scroll event fired on', e.target);
-      const scrollElement = e.target as Element;
-      const scrollPosition = scrollElement.scrollTop;
-      console.log('Scroll position:', scrollPosition);
+  const debouncedScroll = useCallback(() => {
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    scrollTimeoutRef.current = setTimeout(() => {
+      if (!listRef.current) return;
 
-      const scrollIndicator = document.getElementById('scrollIndicator');
-      if (scrollIndicator) {
-        scrollIndicator.textContent = scrollPosition.toString();
-      }
-
-      const windowHeight = scrollElement.clientHeight;
+      const scrollPosition = listRef.current.scrollTop;
+      const windowHeight = listRef.current.clientHeight;
 
       let closestStory: { id: string; distance: number } | null = null;
 
@@ -60,15 +51,9 @@ const StoryList: React.FC<StoryListProps> = ({
         const element = storyRefs.current[storyId];
         if (element) {
           const rect = element.getBoundingClientRect();
-          const elementTop = rect.top - scrollElement.getBoundingClientRect().top;
+          const elementTop = rect.top - listRef.current.getBoundingClientRect().top;
           const elementCenter = elementTop + rect.height / 2;
           const distanceFromCenter = Math.abs(windowHeight / 2 - elementCenter);
-
-          console.log(`Story ${storyId}:`, {
-            elementTop,
-            elementCenter,
-            distanceFromCenter
-          });
 
           if (!closestStory || distanceFromCenter < closestStory.distance) {
             closestStory = { id: storyId, distance: distanceFromCenter };
@@ -76,39 +61,39 @@ const StoryList: React.FC<StoryListProps> = ({
         }
       }
 
-      if (closestStory) {
-        console.log('Closest story:', closestStory.id);
+      if (closestStory && closestStory.id !== activeStoryId) {
         onStoryActivate(closestStory.id);
       }
-    };
+    }, 100); // Adjust this delay as needed
+  }, [onStoryActivate, activeStoryId]);
 
-    const possibleScrollElements = [
-      
-      document.querySelector('#story-list-container'),
-   
-    ];
-
-    possibleScrollElements.forEach(element => {
-      if (element) {
-        element.addEventListener('scroll', handleScroll, { passive: true });
-        console.log('Scroll listener added to', element);
-      }
-    });
+  useEffect(() => {
+    const listElement = listRef.current;
+    if (listElement) {
+      listElement.addEventListener('scroll', debouncedScroll);
+    }
 
     return () => {
-      possibleScrollElements.forEach(element => {
-        if (element) {
-          element.removeEventListener('scroll', handleScroll);
-        }
-      });
+      if (listElement) {
+        listElement.removeEventListener('scroll', debouncedScroll);
+      }
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
     };
-  }, [onStoryActivate]);
+  }, [debouncedScroll]);
+
+  useEffect(() => {
+    if (activeStoryId && storyRefs.current[activeStoryId]) {
+      storyRefs.current[activeStoryId]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }
+  }, [activeStoryId]);
 
   return (
-    <div ref={listRef} id="story-list-container" className="story-list w-full h-full overflow-y-auto p-4">
-      <div className="fixed top-0 right-0 bg-black text-white p-2">
-        Scroll: <span id="scrollIndicator">0</span>
-      </div>
+    <div ref={listRef} className="story-list w-full h-full overflow-y-auto p-4">
       <h1 className="text-3xl font-bold mb-4">Berlin Historical Tour</h1>
       
       <h2 className="text-2xl font-bold mt-8 mb-4">Stories</h2>
