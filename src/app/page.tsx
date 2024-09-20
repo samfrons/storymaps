@@ -72,7 +72,8 @@ export default function Home() {
 
   const handleStoryActivate = (storyId: string) => {
     setActiveStoryId(storyId);
-    setIsSidePanelOpen(false);
+    // Remove this line to prevent closing the side panel when activating a story
+    // setIsSidePanelOpen(false);
   };
 
   const handleViewFullStory = (storyId: string) => {
@@ -130,7 +131,6 @@ export default function Home() {
               activeStoryId={activeStoryId}
               currentDate={currentDate}
               onViewFullStory={handleViewFullStory}
-              
             />
           </div>
         </div>
