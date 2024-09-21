@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 
-const DATA_FILE_PATH = path.join(process.cwd(), 'data', 'storymaps.json');
+const DATA_FILE_PATH = path.join(process.cwd(), 'data', 'storymap.json');
 
 async function getStoryMap(id: string) {
   try {

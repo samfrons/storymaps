@@ -1,0 +1,33 @@
+{
+  "id": "sample123",
+  "location": "New York City",
+  "startYear": 1900,
+  "endYear": 2000,
+  "category": "Urban Development",
+  "lat": 40.7128,
+  "lng": -74.0060,
+  "stories": [
+    {
+      "id": "event1",
+      "title": "Empire State Building Completed",
+      "description": "The Empire State Building, an iconic skyscraper, was completed in 1931.",
+      "startDate": 1931,
+      "endDate": 1931,
+      "category": "Architecture",
+      "lat": 40.7484,
+      "lng": -73.9857
+    },
+    {
+      "id": "event2",
+      "title": "World's Fair 1964",
+      "description": "New York City hosted the 1964-1965 World's Fair in Flushing Meadows-Corona Park.",
+      "startDate": 1964,
+      "endDate": 1965,
+      "category": "Cultural Event",
+      "lat": 40.7463,
+      "lng": -73.8439
+    }
+  ],
+  "createdAt": "2023-09-21T12:00:00Z",
+  "updatedAt": "2023-09-21T12:00:00Z"
+}

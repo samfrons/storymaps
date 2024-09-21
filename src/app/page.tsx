@@ -7,6 +7,7 @@ import TimeSlider from './components/TimeSlider';
 import SidePanel from './components/SidePanel';
 import StoryPopup from './components/StoryPopup';
 import { StoryMap } from '../types';
+import MapMaker from './components/MapMaker';
 
 const Map = dynamic(() => import('./components/Map'), { ssr: false });
 
@@ -29,6 +30,7 @@ export default function Home() {
   const [maxDate, setMaxDate] = useState<Date | null>(null);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [popupStoryId, setPopupStoryId] = useState<string | null>(null);
+  const [showMapMaker, setShowMapMaker] = useState(false);
 
   const toggleSidePanel = useCallback(() => setIsSidePanelOpen(prev => !prev), []);
 
@@ -105,39 +107,54 @@ export default function Home() {
           {isSidePanelOpen ? 'Close' : 'Overview'}
         </button>
 
-        <div className="w-full md:w-1/3 h-1/2 md:h-screen order-2 md:order-1 overflow-auto">
-          <StoryList
-            visibleStories={visibleStories}
-            activeStoryId={activeStoryId}
-            minDate={minDate}
-            maxDate={maxDate}
-            currentDate={currentDate}
-            setCurrentDate={setCurrentDate}
-            onStoryActivate={handleStoryActivate}
-            onViewFullStory={handleViewFullStory}
-          />
-        </div>
-        <div className="w-full md:w-2/3 h-1/2 md:h-screen order-1 md:order-2 flex flex-col">
-          <div className="h-16">
-            <TimeSlider
-              minDate={minDate}
-              maxDate={maxDate}
-              currentDate={currentDate}
-              onChange={setCurrentDate}
-            />
+        <button
+          onClick={() => setShowMapMaker(prev => !prev)}
+          className="fixed top-4 right-4 z-50 bg-primary text-white px-4 py-2 rounded-full shadow-lg"
+        >
+          {showMapMaker ? 'Close Map Maker' : 'Open Map Maker'}
+        </button>
+
+        {showMapMaker ? (
+          <div className="w-full h-full">
+            <MapMaker />
           </div>
-          <div className="flex-1">
-            <Map
-              stories={visibleStories}
-              center={berlinCoordinates}
-              zoom={defaultZoom}
-              onMarkerClick={handleStoryActivate}
-              activeStoryId={activeStoryId}
-              currentDate={currentDate}
-              onViewFullStory={handleViewFullStory}
-            />
-          </div>
-        </div>
+        ) : (
+          <>
+            <div className="w-full md:w-1/3 h-1/2 md:h-screen order-2 md:order-1 overflow-auto">
+              <StoryList
+                visibleStories={visibleStories}
+                activeStoryId={activeStoryId}
+                minDate={minDate}
+                maxDate={maxDate}
+                currentDate={currentDate}
+                setCurrentDate={setCurrentDate}
+                onStoryActivate={handleStoryActivate}
+                onViewFullStory={handleViewFullStory}
+              />
+            </div>
+            <div className="w-full md:w-2/3 h-1/2 md:h-screen order-1 md:order-2 flex flex-col">
+              <div className="h-16">
+                <TimeSlider
+                  minDate={minDate}
+                  maxDate={maxDate}
+                  currentDate={currentDate}
+                  onChange={setCurrentDate}
+                />
+              </div>
+              <div className="flex-1">
+                <Map
+                  stories={visibleStories}
+                  center={berlinCoordinates}
+                  zoom={defaultZoom}
+                  onMarkerClick={handleStoryActivate}
+                  activeStoryId={activeStoryId}
+                  currentDate={currentDate}
+                  onViewFullStory={handleViewFullStory}
+                />
+              </div>
+            </div>
+          </>
+        )}
       </div>
       {popupStoryId && (
         <StoryPopup
