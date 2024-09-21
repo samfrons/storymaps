@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 interface MapMakerProps {
-  onUpdate: (filename: string) => void;
+ // onUpdate: (filename: string) => void;
+   onUpdate: () => void;
 }
 
 export default function MapMaker({ onUpdate }: MapMakerProps) {
@@ -27,9 +28,10 @@ export default function MapMaker({ onUpdate }: MapMakerProps) {
         endYear: parseInt(endYear)
       });
 
-      if (response.status === 201) {
+      if (response.status === 200) {
         setSuccess('Story map created successfully!');
-        onUpdate(response.data.filename);
+     //   onUpdate(response.data.filename);
+        onUpdate();
         setTopic('');
         setPlace('');
         setStartYear('');

@@ -1,24 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
-import { CohereClient } from 'cohere-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DEFAULT_FILE = 'storymap.json';
 
-// Initialize Cohere client
-const cohereApiKey = process.env.COHERE_API_KEY;
-const cohereClient = new CohereClient({
-  token: cohereApiKey,
-});
+// Initialize Google AI client
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+async function ensureDataDirectoryExists() {
+  try {
+    await fs.access(DATA_DIR);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      await fs.mkdir(DATA_DIR, { recursive: true });
+    } else {
+      throw error;
+    }
+  }
+}
 
 async function getStoryMap(filename = DEFAULT_FILE) {
+  await ensureDataDirectoryExists();
   try {
     const filePath = path.join(DATA_DIR, filename);
+    
+    try {
+      await fs.access(filePath);
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        const defaultStoryMap = {
+          id: 'default',
+          topic: 'Default Topic',
+          place: 'Default Place',
+          startYear: 2000,
+          endYear: 2023,
+          stories: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await saveStoryMap(defaultStoryMap, filename);
+        return defaultStoryMap;
+      }
+      throw error;
+    }
+
     const data = await fs.readFile(filePath, 'utf8');
     return JSON.parse(data);
   } catch (error) {
-    console.error(`Error reading ${filename}:`, error);
+    console.error(`Error reading or creating ${filename}:`, error);
     throw error;
   }
 }
@@ -27,7 +59,6 @@ async function saveStoryMap(storyMap: any, filename = DEFAULT_FILE) {
   const filePath = path.join(DATA_DIR, filename);
   await fs.writeFile(filePath, JSON.stringify(storyMap, null, 2));
 }
-
 
 export async function GET(request: NextRequest) {
   try {
@@ -39,13 +70,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(storyMap);
   } catch (error) {
     console.error('Error in GET /api/storymaps:', error);
-    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-      return NextResponse.json({ error: 'Data file not found' }, { status: 404 });
-    }
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
-
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,9 +82,9 @@ export async function POST(request: NextRequest) {
 
     if (body.action === 'generate_map') {
       console.log('Generating new map...');
-      const newFilename = `generated_map_${Date.now()}.json`;
+     // const newFilename = `generated_map_${Date.now()}.json`; 
+      await saveStoryMap(newStoryMap, DEFAULT_FILE);
       
-      // Generate story content using Cohere
       const storyPrompt = `Generate 2 historical stories about ${body.topic} in ${body.place} generally between ${body.startYear} and ${body.endYear}. Return the result as a JSON array with each story having this structure:
       {
         "id": number,
@@ -72,24 +99,18 @@ export async function POST(request: NextRequest) {
         "author": string,
         "imageUrls": string[]
       }
-      Make sure the lat and lng are realistic coordinates for the given place, and that the startDate and endDate are within the specified year range.`;
+      Make sure the lat and lng are realistic coordinates for the given place, and that the startDate and endDate are within the specified year range. The description should not be more than 20 words.`;
       
-      const response = await cohereClient.generate({
-        model: 'command-nightly',
-        prompt: storyPrompt,
-        max_tokens: 1000,
-        temperature: 0.7,
-        k: 0,
-        stop_sequences: [],
-        return_likelihoods: 'NONE'
-      });
+      const result = await model.generateContent(storyPrompt);
+      const response = await result.response;
+      const responseText = response.text();
 
       let generatedStories;
       try {
-        generatedStories = JSON.parse(response.generations[0].text);
+        generatedStories = JSON.parse(responseText || '[]');
       } catch (error) {
         console.error('Error parsing generated stories:', error);
-        console.log('Raw response:', response.generations[0].text);
+        console.log('Raw response:', responseText);
         generatedStories = [];
       }
 
@@ -105,8 +126,12 @@ export async function POST(request: NextRequest) {
       };
 
       await saveStoryMap(newStoryMap, newFilename);
-      console.log(`Successfully generated new StoryMap: ${newFilename}`);
-      return NextResponse.json({ filename: newFilename, storyMap: newStoryMap }, { status: 201 });
+    //  console.log(`Successfully generated new StoryMap: ${newFilename}`);
+    //  return NextResponse.json({ filename: newFilename, storyMap: newStoryMap }, { status: 201 });
+      console.log(`Successfully updated StoryMap: ${DEFAULT_FILE}`);
+      return NextResponse.json({ filename: DEFAULT_FILE, storyMap: newStoryMap }, { status: 200 });
+
+
     } else {
       console.log('Invalid action received');
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
