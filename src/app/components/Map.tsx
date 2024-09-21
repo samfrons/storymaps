@@ -76,7 +76,7 @@ function MapContent({
       />
       {markers.map((marker) => {
         const markerState = markerStates.find(m => m.id === marker.id)?.state || 'normal';
-        const isActive = marker.id === activeStoryId;
+        const isActive = marker.id === activeStoryId || marker.id === openPopupId;
         return (
           <Marker 
             key={marker.id} 
