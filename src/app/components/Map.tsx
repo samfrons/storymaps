@@ -1,6 +1,5 @@
 'use client'
 
-import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
@@ -42,7 +41,10 @@ function MapContent({
 
   useEffect(() => {
     if (!activeStoryId) {
-      map.setView(center, zoom);
+      map.flyTo(center, zoom, {
+        duration: 1,
+        easeLinearity: 0.25
+      });
     }
   }, [map, center, zoom, activeStoryId]);
 
@@ -51,7 +53,7 @@ function MapContent({
       const activeStory = stories.find(s => s.id === activeStoryId);
       if (activeStory) {
         const position: [number, number] = [Number(activeStory.lat), Number(activeStory.lng)];
-        map.flyTo(position, 10, {
+        map.flyTo(position, 15, {
           duration: 1,
           easeLinearity: 0.25
         });

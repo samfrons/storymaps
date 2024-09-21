@@ -35,10 +35,10 @@ export default function Home() {
   const [mapCenter, setMapCenter] = useState<[number, number]>(defaultCoordinates);
   const [mapZoom, setMapZoom] = useState(defaultZoom);
 
+  const toggleSidePanel = useCallback(() => setIsSidePanelOpen(prev => !prev), []); 
+  const [currentFile, setCurrentFile] = useState('storymap.json');
 
-  const toggleSidePanel = useCallback(() => setIsSidePanelOpen(prev => !prev), []);
-
-const fetchStories = useCallback(async () => {
+const fetchStories = useCallback(async (filename: string) => {
   try {
     const response = await fetch('/api/storymaps');
     const data = await response.json();
@@ -90,8 +90,8 @@ const fetchStories = useCallback(async () => {
   }
 }, []);
   useEffect(() => {
-    fetchStories();
-  }, [fetchStories, refreshKey]);
+    fetchStories(currentFile);
+  }, [fetchStories, currentFile]);
 
   const handleStoryActivate = useCallback((storyId: string) => {
     setActiveStoryId(storyId);
@@ -104,8 +104,8 @@ const fetchStories = useCallback(async () => {
 
   const closeSidePanel = useCallback(() => setIsSidePanelOpen(false), []);
 
-  const handleMapUpdate = useCallback(() => {
-    setRefreshKey(prevKey => prevKey + 1);
+  const handleMapUpdate = useCallback((filename: string) => {
+    setCurrentFile(filename);
   }, []);
 
   const memoizedStories = useMemo(() => stories, [stories]);
