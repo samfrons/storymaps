@@ -1,32 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
-import axios from 'axios';
 
-const DATA_FILE_PATH = path.join(process.cwd(), 'data', 'storymap.json');
-const SAMPLE_FILE_PATH = path.join(process.cwd(), 'data', 'sample_storymap.json');
+const DATA_DIR = path.join(process.cwd(), 'data');
+const DEFAULT_FILE = 'storymap.json';
 
-async function getStoryMap() {
+async function getStoryMap(filename = DEFAULT_FILE) {
   try {
-    const data = await fs.readFile(DATA_FILE_PATH, 'utf8');
+    const filePath = path.join(DATA_DIR, filename);
+    const data = await fs.readFile(filePath, 'utf8');
     return JSON.parse(data);
   } catch (error) {
-    console.error('Error reading storymap.json:', error);
-    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-      console.error('File not found. Please ensure storymap.json exists in the data directory.');
-    }
+    console.error(`Error reading ${filename}:`, error);
     throw error;
   }
 }
 
-async function saveStoryMap(storyMap: any) {
-  await fs.writeFile(DATA_FILE_PATH, JSON.stringify(storyMap, null, 2));
+async function saveStoryMap(storyMap: any, filename = DEFAULT_FILE) {
+  const filePath = path.join(DATA_DIR, filename);
+  await fs.writeFile(filePath, JSON.stringify(storyMap, null, 2));
 }
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('GET request received for /api/storymaps');
-    const storyMap = await getStoryMap();
+    const { searchParams } = new URL(request.url);
+    const filename = searchParams.get('file') || DEFAULT_FILE;
+    console.log(`GET request received for /api/storymaps with file: ${filename}`);
+    const storyMap = await getStoryMap(filename);
     console.log('Successfully retrieved StoryMap');
     return NextResponse.json(storyMap);
   } catch (error) {
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       return NextResponse.json({ error: 'Data file not found' }, { status: 404 });
     }
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error', details: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
   }
 }
 
@@ -42,89 +42,39 @@ export async function POST(request: NextRequest) {
   try {
     console.log('POST request received for /api/storymaps');
     const body = await request.json();
+    console.log('Request body:', body);
 
     if (body.action === 'load_sample') {
-      // Load the sample data
-      const sampleData = await fs.readFile(SAMPLE_FILE_PATH, 'utf8');
-      const sampleStoryMap = JSON.parse(sampleData);
-
-      // Save the sample data to the main storymap.json file
-      await saveStoryMap(sampleStoryMap);
-
+      const sampleData = await getStoryMap('sample_storymap.json');
+      await saveStoryMap(sampleData);
       console.log('Successfully loaded sample StoryMap');
-      return NextResponse.json(sampleStoryMap, { status: 200 });
-    } else {
-      // Existing story map generation logic
-      const { location, startYear, endYear, category } = body;
-
-      if (!location || !startYear || !endYear) {
-        return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
-      }
-
-      // 1. Get coordinates for the location
-      const geocodingResponse = await axios.get(
-        `https://api.openstreetmap.org/nominatim/search?format=json&q=${encodeURIComponent(location)}`
-      );
-      const [locationData] = geocodingResponse.data;
-      
-      if (!locationData) {
-        return NextResponse.json({ error: 'Location not found' }, { status: 404 });
-      }
-
-      const { lat, lon: lng } = locationData;
-
-      // 2. Generate historical events
-      const stories = await generateHistoricalEvents(location, startYear, endYear, category, lat, lng);
-
-      // 3. Create new story map
+      return NextResponse.json(sampleData, { status: 200 });
+    } else if (body.action === 'generate_map') {
+      console.log('Generating new map...');
+      const newFilename = `generated_map_${Date.now()}.json`;
       const newStoryMap = {
         id: Date.now().toString(),
-        location,
-        startYear,
-        endYear,
-        category,
-        lat,
-        lng,
-        stories,
+        location: body.location,
+        startYear: body.startYear,
+        endYear: body.endYear,
+        category: body.category,
+        stories: [], // This would be filled with AI-generated stories
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-
-      // 4. Save the new story map, replacing any existing content
-      await saveStoryMap(newStoryMap);
-
-      console.log('Successfully generated and saved new StoryMap');
-      return NextResponse.json(newStoryMap, { status: 201 });
+      await saveStoryMap(newStoryMap, newFilename);
+      console.log(`Successfully generated new StoryMap: ${newFilename}`);
+      return NextResponse.json({ filename: newFilename }, { status: 201 });
+    } else {
+      console.log('Invalid action received');
+      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
     console.error('Error in POST /api/storymaps:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Internal Server Error', 
+      details: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace available'
+    }, { status: 500 });
   }
-}
-
-async function generateHistoricalEvents(location: string, startYear: number, endYear: number, category: string, lat: number, lng: number) {
-  // This is a placeholder function. In a real application, you would implement
-  // logic here to generate historical events, possibly using an AI service.
-  return [
-    {
-      id: Date.now().toString(),
-      title: `Event in ${location} 1`,
-      description: `A historical event that occurred in ${location}`,
-      startDate: startYear,
-      endDate: endYear,
-      category,
-      lat,
-      lng,
-    },
-    {
-      id: (Date.now() + 1).toString(),
-      title: `Event in ${location} 2`,
-      description: `Another historical event that occurred in ${location}`,
-      startDate: startYear + 10,
-      endDate: endYear - 10,
-      category,
-      lat: lat + 0.01,
-      lng: lng + 0.01,
-    },
-  ];
 }

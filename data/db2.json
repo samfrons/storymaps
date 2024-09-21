@@ -223,20 +223,7 @@
     "author": "",
     "imageUrls": ["/images/wassermann/wassermann.png"]
   },
-  {
-    "id": 18,
-    "title": "",
-    "description": "",
-    "category": "",
-    "address": "",
-    "lat": "",
-    "lng": "",
-    "startDate": "",
-    "midDate": "",
-    "endDate": "",
-    "author": "",
-    "imageUrls": []
-  },
+  
   {
     "id": 19,
     "title": "The Weinberger Butter Brothers:",
@@ -264,20 +251,6 @@
     "endDate": 1938,
     "author": "",
     "imageUrls": ["/images/yva/yva.png"]
-  },
-  {
-    "id": 21,
-    "title": "",
-    "description": "",
-    "category": "",
-    "address": "",
-    "lat": "",
-    "lng": "",
-    "startDate": "",
-    "midDate": "",
-    "endDate": "",
-    "author": "",
-    "imageUrls": []
   },
   {
     "id": 22,

@@ -1,33 +1,67 @@
-{
-  "id": "sample123",
-  "location": "New York City",
-  "startYear": 1900,
-  "endYear": 2000,
-  "category": "Urban Development",
-  "lat": 40.7128,
-  "lng": -74.0060,
-  "stories": [
-    {
-      "id": "event1",
-      "title": "Empire State Building Completed",
-      "description": "The Empire State Building, an iconic skyscraper, was completed in 1931.",
-      "startDate": 1931,
-      "endDate": 1931,
-      "category": "Architecture",
-      "lat": 40.7484,
-      "lng": -73.9857
-    },
-    {
-      "id": "event2",
-      "title": "World's Fair 1964",
-      "description": "New York City hosted the 1964-1965 World's Fair in Flushing Meadows-Corona Park.",
-      "startDate": 1964,
-      "endDate": 1965,
-      "category": "Cultural Event",
-      "lat": 40.7463,
-      "lng": -73.8439
-    }
-  ],
-  "createdAt": "2023-09-21T12:00:00Z",
-  "updatedAt": "2023-09-21T12:00:00Z"
-}
+[
+  {
+    "id": 1,
+    "title": "Ironbridge Gorge",
+    "description": "The world's first iron bridge was built here in 1779, marking a significant milestone in the Industrial Revolution.",
+    "category": "Engineering",
+    "address": "Ironbridge, Telford TF8 7JP, United Kingdom",
+    "lat": 52.6293,
+    "lng": -2.4874,
+    "startDate": 1779,
+    "endDate": 1781,
+    "author": "Abraham Darby III",
+    "imageUrls": []
+  },
+  {
+    "id": 2,
+    "title": "Cromford Mill",
+    "description": "The world's first water-powered cotton spinning mill, established by Richard Arkwright in 1771.",
+    "category": "Manufacturing",
+    "address": "Mill Rd, Cromford, Matlock DE4 3RQ, United Kingdom",
+    "lat": 53.1098,
+    "lng": -1.5603,
+    "startDate": 1771,
+    "endDate": 1790,
+    "author": "Richard Arkwright",
+    "imageUrls": []
+  },
+  {
+    "id": 3,
+    "title": "Stephenson's Rocket",
+    "description": "An early steam locomotive of 0-2-2 wheel arrangement, designed by Robert Stephenson in 1829.",
+    "category": "Transportation",
+    "address": "Science Museum, Exhibition Rd, South Kensington, London SW7 2DD, United Kingdom",
+    "lat": 51.4978,
+    "lng": -0.1745,
+    "startDate": 1829,
+    "endDate": 1830,
+    "author": "Robert Stephenson",
+    "imageUrls": []
+  },
+  {
+    "id": 4,
+    "title": "Quarry Bank Mill",
+    "description": "One of the best-preserved textile mills of the Industrial Revolution, founded in 1784.",
+    "category": "Manufacturing",
+    "address": "Styal, Wilmslow SK9 4LA, United Kingdom",
+    "lat": 53.3441,
+    "lng": -2.2498,
+    "startDate": 1784,
+    "endDate": 1900,
+    "author": "Samuel Greg",
+    "imageUrls": []
+  },
+  {
+    "id": 5,
+    "title": "Coalbrookdale Museum of Iron",
+    "description": "Site of the first coke-fired blast furnace, marking the beginning of the Industrial Revolution.",
+    "category": "Manufacturing",
+    "address": "Coach Rd, Coalbrookdale, Telford TF8 7DQ, United Kingdom",
+    "lat": 52.6387,
+    "lng": -2.4924,
+    "startDate": 1709,
+    "endDate": 1750,
+    "author": "Abraham Darby I",
+    "imageUrls": []
+  }
+]

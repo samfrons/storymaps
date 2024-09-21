@@ -24,8 +24,10 @@ function MapContent({
   activeStoryId, 
   currentDate, 
   mapStyle,
-  onViewFullStory
-}: Omit<MapProps, 'center' | 'zoom'>) {
+  onViewFullStory,
+  center,
+  zoom
+}: MapProps) {
   const map = useMap();
   const markerRefs = useRef<{ [key: string]: L.Marker }>({});
   const [openPopupId, setOpenPopupId] = useState<string | null>(null);
@@ -38,11 +40,17 @@ function MapContent({
   }));
 
   useEffect(() => {
+    if (!activeStoryId) {
+      map.setView(center, zoom);
+    }
+  }, [map, center, zoom, activeStoryId]);
+
+  useEffect(() => {
     if (activeStoryId) {
       const activeStory = stories.find(s => s.id === activeStoryId);
       if (activeStory) {
         const position: [number, number] = [Number(activeStory.lat), Number(activeStory.lng)];
-        map.flyTo(position, 15, {
+        map.flyTo(position, 10, {
           duration: 1,
           easeLinearity: 0.25
         });
@@ -115,8 +123,15 @@ function MapContent({
 }
 
 const Map: React.FC<MapProps> = (props) => {
+  console.log('Map component received props:', props);
+
   return (
-    <MapContainer center={props.center} zoom={props.zoom} style={{ height: '100%', width: '100%' }}>
+    <MapContainer 
+      key={`map-${props.center[0]}-${props.center[1]}-${props.zoom}`}
+      center={props.center} 
+      zoom={props.zoom} 
+      style={{ height: '100%', width: '100%' }}
+    >
       <MapContent {...props} />
     </MapContainer>
   )

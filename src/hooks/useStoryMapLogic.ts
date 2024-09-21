@@ -64,5 +64,5 @@ export const useStoryMapLogic = () => {
   };
 };
 
-export const berlinCoordinates: [number, number] = [52.52, 13.405];
+export const defaultCoordinates: [number, number] = [32.52, 13.405];
 export const defaultZoom = 8;

@@ -19,6 +19,10 @@ const StoryDetail: React.FC<StoryDetailProps> = ({ story, isStandalone = false }
     setIsMounted(true);
   }, []);
 
+   if (!isMounted) {
+    return null // or a loading placeholder
+  }
+
   if (!story) {
     return <div>No story details available.</div>;
   }

@@ -1,9 +1,13 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { StoryMap } from '../types';
-import StoryDetail from './StoryDetail';
+
+
+const StoryDetail = dynamic(() => import('./StoryDetail'), { ssr: false })
+
 
 interface StoryListProps {
   visibleStories: StoryMap[];
