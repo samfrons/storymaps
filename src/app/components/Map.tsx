@@ -53,7 +53,7 @@ function MapContent({
       const activeStory = stories.find(s => s.id === activeStoryId);
       if (activeStory) {
         const position: [number, number] = [Number(activeStory.lat), Number(activeStory.lng)];
-        map.flyTo(position, 15, {
+        map.flyTo(position, 12, {
           duration: 1,
           easeLinearity: 0.25
         });

@@ -12,13 +12,13 @@ import MapMaker from './components/MapMaker';
 const Map = dynamic(() => import('./components/Map'), { ssr: false });
 
 export const defaultCoordinates: [number, number] = [52.52, 13.405];
-export const defaultZoom = 12;
+export const defaultZoom = 13; // Increased default zoom
 
 function createDateFromYear(year: number | string | null): Date | null {
   if (year === null || year === "") return null;
   const yearNum = typeof year === 'string' ? parseInt(year, 10) : year;
   if (isNaN(yearNum)) return null;
-  return new Date(yearNum, 0, 1); // January 1st of the given year
+  return new Date(yearNum, 0, 1);
 }
 
 export default function Home() {
@@ -34,61 +34,66 @@ export default function Home() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [mapCenter, setMapCenter] = useState<[number, number]>(defaultCoordinates);
   const [mapZoom, setMapZoom] = useState(defaultZoom);
-
-  const toggleSidePanel = useCallback(() => setIsSidePanelOpen(prev => !prev), []); 
   const [currentFile, setCurrentFile] = useState('storymap.json');
+  const toggleSidePanel = useCallback(() => setIsSidePanelOpen(prev => !prev), []); 
+ 
+  const fetchStories = useCallback(async (filename: string) => {
+    try {
+      const response = await fetch(`/api/storymaps?file=${filename}`);
+      const data = await response.json();
+      
+      const processedData = data.map((story: StoryMap) => ({
+        ...story,
+        startDate: createDateFromYear(story.startDate),
+        midDate: createDateFromYear(story.midDate),
+        endDate: createDateFromYear(story.endDate)
+      }));
 
-const fetchStories = useCallback(async (filename: string) => {
-  try {
-    const response = await fetch('/api/storymaps');
-    const data = await response.json();
-    
-    const processedData = data.map((story: StoryMap) => ({
-      ...story,
-      startDate: createDateFromYear(story.startDate),
-      midDate: createDateFromYear(story.midDate),
-      endDate: createDateFromYear(story.endDate)
-    }));
+      setStories(processedData);
+      setVisibleStories(processedData);
 
-    setStories(processedData);
-    setVisibleStories(processedData);
+      // Update map view based on new stories
+      if (processedData.length > 0) {
+        const lats = processedData.map(s => Number(s.lat));
+        const lngs = processedData.map(s => Number(s.lng));
+        const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+        const centerLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+        setMapCenter([centerLat, centerLng]);
 
-    // Update map view based on new stories
-    if (processedData.length > 0) {
-      const lats = processedData.map(s => Number(s.lat));
-      const lngs = processedData.map(s => Number(s.lng));
-      const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
-      const centerLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
-      setMapCenter([centerLat, centerLng]);
+        // Calculate appropriate zoom level
+        const latDiff = Math.max(...lats) - Math.min(...lats);
+        const lngDiff = Math.max(...lngs) - Math.min(...lngs);
+        const maxDiff = Math.max(latDiff, lngDiff);
+        const newZoom = Math.floor(15 - Math.log2(maxDiff));
+        const finalZoom = Math.max(defaultZoom, Math.min(newZoom, 13));
+        setMapZoom(finalZoom);
 
-      // Calculate appropriate zoom level
-      const latDiff = Math.max(...lats) - Math.min(...lats);
-      const lngDiff = Math.max(...lngs) - Math.min(...lngs);
-      const maxDiff = Math.max(latDiff, lngDiff);
-      const newZoom = Math.floor(12 - Math.log2(maxDiff)); // Lowered base zoom from 15 to 12
-      setMapZoom(Math.max(1, Math.min(newZoom, 10))); // Lowered max zoom from 12 to 10
-    } else {
-      // If no stories, reset to default view
-      setMapCenter(defaultCoordinates);
-      setMapZoom(defaultZoom);
+        console.log('Calculated zoom:', newZoom);
+        console.log('Final zoom:', finalZoom);
+      } else {
+        // If no stories, reset to default view
+        setMapCenter(defaultCoordinates);
+        setMapZoom(defaultZoom);
+        console.log('No stories, using default zoom:', defaultZoom);
+      }
+
+      // Update date range
+      const allDates = processedData.flatMap(story => 
+        [story.startDate, story.midDate, story.endDate].filter(Boolean)
+      ) as Date[];
+
+      if (allDates.length > 0) {
+        const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
+        const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
+        setMinDate(minDate);
+        setMaxDate(maxDate);
+        setCurrentDate(minDate);
+      }
+    } catch (error) {
+      console.error('Error fetching stories:', error);
     }
+  }, []);
 
-    // Update date range
-    const allDates = processedData.flatMap(story => 
-      [story.startDate, story.midDate, story.endDate].filter(Boolean)
-    ) as Date[];
-
-    if (allDates.length > 0) {
-      const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
-      const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
-      setMinDate(minDate);
-      setMaxDate(maxDate);
-      setCurrentDate(minDate);
-    }
-  } catch (error) {
-    console.error('Error fetching stories:', error);
-  }
-}, []);
   useEffect(() => {
     fetchStories(currentFile);
   }, [fetchStories, currentFile]);
