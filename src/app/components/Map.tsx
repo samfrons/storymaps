@@ -1,5 +1,6 @@
 'use client'
 
+import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'

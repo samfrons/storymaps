@@ -2,7 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { StoryMap } from '../types';
-import StoryDetail from './StoryDetail';
+import dynamic from 'next/dynamic';
+
+const StoryDetail = dynamic(() => import('./StoryDetail'), { ssr: false });
 
 interface StoryPopupProps {
   storyId: string | null;
